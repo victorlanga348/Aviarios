@@ -1,0 +1,102 @@
+// Configuração básica do Prisma 6
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // Você pode trocar para "postgresql" se preferir
+  url      = env("DATABASE_URL")
+}
+
+// 1. Usuário (Acesso ao sistema)
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+}
+
+// 2. Lote (O Ônibus/Gaveta - Representa cada compra de aves)
+model Batch {
+  id              String         @id @default(uuid())
+  name            String         // Ex: "Lote de Janeiro - Linhagem Cobb"
+  startDate       DateTime       @default(now())
+  initialQuantity Int            // Quantidade inicial de aves
+  costPerBird     Float          // Preço pago por cada ave pequena
+  status          BatchStatus    @default(ACTIVE) // ACTIVE ou CLOSED
+  
+  // Relações
+  expenses        BatchExpense[] // Custos de Ração e Vacina deste lote
+  losses          Loss[]         // Registros de mortes deste lote
+  sales           Sale[]         // Vendas vindas deste lote
+}
+
+enum BatchStatus {
+  ACTIVE
+  CLOSED
+}
+
+// 3. Custos do Lote (A Mochila do ônibus - Ração e Vacinas extras)
+model BatchExpense {
+  id          String   @id @default(uuid())
+  batchId     String
+  type        String   // "RACAO" ou "VACINA"
+  description String?
+  amount      Float    // Valor gasto
+  quantity    Float?   // Opcional: ex: "10 sacos"
+  createdAt   DateTime @default(now())
+
+  batch       Batch    @relation(fields: [batchId], references: [id])
+}
+
+// 4. Perdas (Mortalidade)
+model Loss {
+  id        String   @id @default(uuid())
+  batchId   String
+  quantity  Int
+  reason    String?
+  date      DateTime @default(now())
+
+  batch     Batch    @relation(fields: [batchId], references: [id])
+}
+
+// 5. Clientes (O Caderninho de nomes)
+model Customer {
+  id    String @id @default(uuid())
+  name  String
+  phone String?
+  sales Sale[]
+}
+
+// 6. Vendas (O Registro da transação)
+model Sale {
+  id           String    @id @default(uuid())
+  batchId      String
+  customerId   String
+  quantity     Int
+  unitPrice    Float
+  totalValue   Float     // quantidade * unitPrice
+  date         DateTime  @default(now())
+
+  // Relações
+  batch        Batch     @relation(fields: [batchId], references: [id])
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  payments     Payment[] // Para controlar dívidas e pagamentos parciais
+}
+
+// 7. Pagamentos (Para controlar o "Fiado")
+model Payment {
+  id        String   @id @default(uuid())
+  saleId    String
+  amount    Float    // Quanto o cliente pagou nesta vez
+  date      DateTime @default(now())
+
+  sale      Sale     @relation(fields: [saleId], references: [id])
+}
+
+// 8. Despesas Fixas (A Gaveta da Casa - Luz, Água)
+model FixedExpense {
+  id          String   @id @default(uuid())
+  description String   // Ex: "Conta de Luz"
+  amount      Float
+  date        DateTime @default(now()) // O mês será extraído daqui
+}

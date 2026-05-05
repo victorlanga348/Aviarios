@@ -1,0 +1,23 @@
+POST http://localhost:3000/api/batches
+Content-Type: application/json
+
+{
+    "name": "Lote 1",
+    "costPerBird": 100,
+    "initialQuantity": 100
+}
+
+###
+
+POST http://localhost:3000/api/batches
+Content-Type: application/json
+
+{
+    "name": "Lote 2",
+    "costPerBird": 100,
+    "initialQuantity": 100,
+    "status": "CLOSED"
+}
+
+###
+GET http://localhost:3000/api/batches

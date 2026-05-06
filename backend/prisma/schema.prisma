@@ -21,6 +21,7 @@ model Batch {
   name            String         // Ex: "Lote de Janeiro - Linhagem Cobb"
   startDate       DateTime       @default(now())
   initialQuantity Int            // Quantidade inicial de aves
+  actualQuantity  Int?           // Quantidade atual de aves
   costPerBird     Float          // Preço pago por cada ave pequena
   status          BatchStatus    @default(ACTIVE) // ACTIVE ou CLOSED
   

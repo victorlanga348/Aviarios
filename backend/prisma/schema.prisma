@@ -78,6 +78,13 @@ model Sale {
   totalValue   Float     // quantidade * unitPrice
   date         DateTime  @default(now())
 
+  // Dinheiro pago
+  amountPaid   Float     @default(0)
+  // Dinheiro que falta pagar
+  balance      Float     @default(0)
+
+  status       PaymentStatus @default(PENDENTE)
+
   // Relações
   batch        Batch     @relation(fields: [batchId], references: [id])
   customer     Customer  @relation(fields: [customerId], references: [id])
@@ -86,12 +93,25 @@ model Sale {
 
 // 7. Pagamentos (Para controlar o "Fiado")
 model Payment {
-  id        String   @id @default(uuid())
-  saleId    String
-  amount    Float    // Quanto o cliente pagou nesta vez
-  date      DateTime @default(now())
+  id          String   @id @default(uuid())
+  saleId      String
+  amount      Float    // Quanto o cliente pagou nesta vez
+  paymentType PaymentType @default(DINHEIRO)
+  date        DateTime @default(now())
 
-  sale      Sale     @relation(fields: [saleId], references: [id])
+  sale        Sale     @relation(fields: [saleId], references: [id])
+}
+
+enum PaymentType {
+  DINHEIRO
+  TRANSFERENCIA
+  CARTAO
+}
+
+enum PaymentStatus {
+  PENDENTE
+  PAGO
+  PARCIALMENTE_PAGO
 }
 
 // 8. Despesas Fixas (A Gaveta da Casa - Luz, Água)

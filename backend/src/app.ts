@@ -5,6 +5,7 @@ import batchRoutes from './routes/private/batch.routes.js';
 import lossRoutes from './routes/private/loss.routes.js';
 import saleRoutes from './routes/private/sale.routes.js';
 import clientRoutes from './routes/private/client.routes.js';
+import paymentRoutes from './routes/private/payment.routes.js';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use('/api', batchRoutes);
 app.use('/api', lossRoutes);
 app.use('/api', saleRoutes);
 app.use('/api', clientRoutes);
+app.use('/api', paymentRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

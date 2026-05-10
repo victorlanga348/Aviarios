@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { registerLossController } from "../../controllers/lossController.js";
+import { registerLossController, listLossesController } from "../../controllers/lossController.js";
+import { authMiddleware } from "../../middlewares/auth.js";
 
 const router = Router();
 
-router.post('/losses', registerLossController);
+router.post('/', authMiddleware, registerLossController);
+router.get('/:batchId', authMiddleware, listLossesController);
 
 export default router;

@@ -10,7 +10,7 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
         });
 
         if (!batch) {
-            throw new Error('Batch not found');
+            throw new Error('Lote não encontrado');
         }
 
         if (batch.status === BatchStatus.CLOSED) {
@@ -29,6 +29,7 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
             const updatedBatch = await tx.batch.update({
                 where: {
                     id: batchId,
+                    status: BatchStatus.ACTIVE,
                     actualQuantity: { gte: quantity }
                 },
                 data: {
@@ -38,7 +39,6 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
                 }
             });
 
-            // Se o lote ficou vazio, fecha ele automaticamente
             if (updatedBatch.actualQuantity === 0) {
                 await tx.batch.update({
                     where: { id: batchId },
@@ -46,10 +46,7 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
                 });
             }
         } catch (error) {
-            if (error instanceof Error && error.message.includes('Record to update not found')) {
-                throw new Error('Estoque insuficiente para registrar esta perda');
-            }
-            throw error;
+            throw new Error('Não foi possível registrar a perda: Lote inexistente, fechado ou sem estoque suficiente');
         }
 
         return loss;
@@ -64,7 +61,7 @@ async function listLosses(batchId: string) {
     });
 
     if (!batch) {
-        throw new Error('Batch not found');
+        throw new Error('Lote não encontrado');
     }
 
     const losses = await prisma.loss.findMany({

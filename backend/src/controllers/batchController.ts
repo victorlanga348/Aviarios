@@ -4,7 +4,7 @@ import { createBatch, listBatches } from '../services/batchService.js';
 const createBatchController = async (req: Request, res: Response) => {
     try {
         const { name, costPerBird, initialQuantity, status } = req.body;
-        const batch = await createBatch(name, costPerBird, initialQuantity, status);
+        const batch = await createBatch(name, Number(costPerBird), Number(initialQuantity), status);
         res.status(201).json(batch);
     } catch (error: any) {
         res.status(500).json({ message: error.message });

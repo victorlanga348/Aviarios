@@ -11,6 +11,7 @@ datasource db {
 // 1. Usuário (Acesso ao sistema)
 model User {
   id       String @id @default(uuid())
+  name     String
   email    String @unique
   password String
 }
@@ -29,6 +30,9 @@ model Batch {
   expenses        BatchExpense[] // Custos de Ração e Vacina deste lote
   losses          Loss[]         // Registros de mortes deste lote
   sales           Sale[]         // Vendas vindas deste lote
+
+  @@index([status])
+  @@index([startDate])
 }
 
 enum BatchStatus {
@@ -47,6 +51,8 @@ model BatchExpense {
   createdAt   DateTime @default(now())
 
   batch       Batch    @relation(fields: [batchId], references: [id])
+
+  @@index([createdAt])
 }
 
 // 4. Perdas (Mortalidade)
@@ -89,6 +95,9 @@ model Sale {
   batch        Batch     @relation(fields: [batchId], references: [id])
   customer     Customer  @relation(fields: [customerId], references: [id])
   payments     Payment[] // Para controlar dívidas e pagamentos parciais
+
+  @@index([date])
+  @@index([customerId])
 }
 
 // 7. Pagamentos (Para controlar o "Fiado")
@@ -120,4 +129,12 @@ model FixedExpense {
   description String   // Ex: "Conta de Luz"
   amount      Float
   date        DateTime @default(now()) // O mês será extraído daqui
+
+  @@index([date])
+}
+// 10. Configurações Globais (Preços, taxas, etc)
+model Configuration {
+  id                String   @id @default("global")
+  birdSellingPrice  Float    @default(0)
+  updatedAt         DateTime @updatedAt
 }

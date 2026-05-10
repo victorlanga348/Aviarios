@@ -1,24 +1,29 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { createPayment, listPayments } from "../services/paymentService.js";
 
-async function createPaymentController(req: Request, res: Response) {
+/**
+ * Controller para registrar um novo pagamento.
+ */
+async function createPaymentController(req: Request, res: Response, next: NextFunction) {
     const { saleId, amount, paymentType } = req.body;
     try {
         const payment = await createPayment(saleId, amount, paymentType);
-        res.json(payment);
+        res.status(201).json(payment);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to create payment' });
+        next(error);
     }
 }
 
-async function listPaymentsController(req: Request, res: Response) {
+/**
+ * Controller para listar pagamentos de uma venda específica.
+ */
+async function listPaymentsController(req: Request, res: Response, next: NextFunction) {
+    const { saleId } = req.params; // Removido o 'as' que causava erro no transform
     try {
-        const payments = await listPayments();
+        const payments = await listPayments(String(saleId));
         res.json(payments);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to list payments' });
+        next(error);
     }
 }
 

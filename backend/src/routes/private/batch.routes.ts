@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import { authMiddleware } from '../../middlewares/auth.js';
 import { createBatchController, listBatchesController } from '../../controllers/batchController.js';
 
 const router = Router();
 
-router.post('/batches', createBatchController);
-router.get('/batches', listBatchesController);
+router.post('/', authMiddleware, createBatchController);
+router.get('/', authMiddleware, listBatchesController);
 
 export default router;

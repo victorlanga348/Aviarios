@@ -6,12 +6,13 @@ import {
     deleteSaleController, 
     getClientDebtController 
 } from "../../controllers/saleController.js";
+import { authMiddleware } from "../../middlewares/auth.js";
 
 const router = Router();
-router.post("/sales/register", registerSaleController);
-router.get("/sales/:batchId", listSalesController);
-router.get("/sales/client/:clientId", listClientSalesController);
-router.delete("/sales/cancel/:id", deleteSaleController);
-router.get("/sales/debt/:clientId", getClientDebtController);
+router.post("/", authMiddleware, registerSaleController);
+router.get("/:batchId", authMiddleware, listSalesController);
+router.get("/clients/:clientId", authMiddleware, listClientSalesController);
+router.delete("/:id", authMiddleware, deleteSaleController);
+router.get("/debt/:clientId", authMiddleware, getClientDebtController);
 
 export default router;

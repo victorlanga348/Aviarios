@@ -1,12 +1,16 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import loginRoutes from './routes/public/login.routes.js';
+import registerRoutes from './routes/public/register.routes.js';
 import batchRoutes from './routes/private/batch.routes.js';
 import lossRoutes from './routes/private/loss.routes.js';
 import saleRoutes from './routes/private/sale.routes.js';
 import clientRoutes from './routes/private/client.routes.js';
 import paymentRoutes from './routes/private/payment.routes.js';
-
+import fixedExpenseRoutes from './routes/private/fixedExpense.routes.js';
+import dashboardRoutes from './routes/private/dashboard.routes.js';
+import configRoutes from './routes/private/config.routes.js';
 dotenv.config();
 
 const app = express();
@@ -16,11 +20,20 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
-app.use('/api', batchRoutes);
-app.use('/api', lossRoutes);
-app.use('/api', saleRoutes);
-app.use('/api', clientRoutes);
-app.use('/api', paymentRoutes);
+app.use('/api/register', registerRoutes);
+app.use('/api/login', loginRoutes);
+app.use('/api/batches', batchRoutes);
+app.use('/api/losses', lossRoutes);
+app.use('/api/sales', saleRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/fixed-expenses', fixedExpenseRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/config', configRoutes);
+
+// Middleware de Erro Global
+import { errorMiddleware } from './middlewares/error.js';
+app.use(errorMiddleware);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

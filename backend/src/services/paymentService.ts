@@ -2,18 +2,16 @@ import prisma from "../config/db.js";
 import { PaymentStatus, PaymentType } from "@prisma/client";
 
 async function createPayment(saleId: string, amount: number, paymentType: PaymentType) {
-    try {
-        const sale = await prisma.sale.findUnique({
-            where: {
-                id: saleId
-            }
+    return await prisma.$transaction(async (tx) => {
+        const sale = await tx.sale.findUnique({
+            where: { id: saleId }
         });
 
         if (!sale) {
             throw new Error('Sale not found');
         }
 
-        const payment = await prisma.payment.create({
+        const payment = await tx.payment.create({
             data: {
                 saleId,
                 amount,
@@ -21,42 +19,37 @@ async function createPayment(saleId: string, amount: number, paymentType: Paymen
             }
         });
 
-        // Updating the status of the sale
-        const totalPaid = await prisma.payment.aggregate({
+        // Calculando total pago atualizado
+        const totalPaidResult = await tx.payment.aggregate({
             where: { saleId },
             _sum: {
                 amount: true
             }
         });
 
-        if (totalPaid._sum?.amount && totalPaid._sum.amount >= sale.totalValue) {
-            await prisma.sale.update({
-                where: { id: saleId },
-                data: {
-                    status: PaymentStatus.PAGO
-                }
-            });
-        } else {
-            await prisma.sale.update({
-                where: { id: saleId },
-                data: {
-                    status: PaymentStatus.PARCIALMENTE_PAGO,
-                    amountPaid: totalPaid._sum.amount || 0,
-                    balance: sale.totalValue - (totalPaid._sum.amount || 0)
-                }
-            });
-        }
+        // Calculando os valores finais em memória antes da atualização.
+        const totalPaid = (totalPaidResult._sum?.amount || 0);
+        const balance = Math.max(0, sale.totalValue - totalPaid); // Evita saldo negativo
+        const status = balance === 0 ? PaymentStatus.PAGO : PaymentStatus.PARCIALMENTE_PAGO;
+
+        await tx.sale.update({
+            where: { id: saleId },
+            data: {
+                status,
+                amountPaid: totalPaid,
+                balance: balance
+            }
+        });
 
         return payment;
-    } catch (error) {
-        console.error(error);
-        throw new Error('Failed to create payment');
-    }
+    });
 }
 
-async function listPayments() {
+async function listPayments(saleId: string) {
     try {
-        const payments = await prisma.payment.findMany();
+        const payments = await prisma.payment.findMany({
+            where: { saleId }
+        });
         return payments;
     } catch (error) {
         console.error(error);

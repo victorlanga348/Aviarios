@@ -3,8 +3,12 @@ import type { Request, Response } from "express";
 
 const registerSaleController = async (req: Request, res: Response) => {
     try {
-        const { batchId, quantity, unitPrice, customerId } = req.body;
-        const sale = await registerSale(batchId, quantity, unitPrice, customerId);
+        const { batchId, quantity, customerId } = req.body;
+        const sale = await registerSale(
+            batchId, 
+            Number(quantity), 
+            customerId
+        );
         res.status(201).json(sale);
     } catch (error: any) {
         res.status(500).json({ message: error.message });

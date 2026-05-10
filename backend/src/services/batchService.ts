@@ -15,11 +15,7 @@ async function createBatch(name: string, costPerBird: number, initialQuantity: n
 }
 
 async function listBatches() {
-    const batches = await prisma.batch.findMany({
-        where: {
-            status: BatchStatus.ACTIVE
-        }
-    });
+    const batches = await prisma.batch.findMany();
     return batches;
 }
 

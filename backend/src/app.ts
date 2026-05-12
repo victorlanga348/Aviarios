@@ -11,6 +11,7 @@ import paymentRoutes from './routes/private/payment.routes.js';
 import fixedExpenseRoutes from './routes/private/fixedExpense.routes.js';
 import dashboardRoutes from './routes/private/dashboard.routes.js';
 import configRoutes from './routes/private/config.routes.js';
+import reportRoutes from './routes/private/report.routes.js';
 dotenv.config();
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/fixed-expenses', fixedExpenseRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Middleware de Erro Global
 import { errorMiddleware } from './middlewares/error.js';

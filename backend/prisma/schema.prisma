@@ -24,6 +24,7 @@ model Batch {
   initialQuantity Int            // Quantidade inicial de aves
   actualQuantity  Int?           // Quantidade atual de aves
   costPerBird     Float          // Preço pago por cada ave pequena
+  transportCost   Float          @default(0) // Custo de transporte do lote
   status          BatchStatus    @default(ACTIVE) // ACTIVE ou CLOSED
   
   // Relações

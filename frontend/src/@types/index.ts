@@ -13,7 +13,7 @@ export interface Batch {
   name: string;
   startDate: string;
   initialQuantity: number;
-  actualQuantity: number | null;
+  actualQuantity: number;
   costPerBird: number;
   transportCost: number;
   status: BatchStatus;
@@ -45,22 +45,24 @@ export interface BatchCreateInput {
   initialQuantity: number;
   costPerBird: number;
   transportCost: number;
-  startDate: string;
+  startDate?: string;
 }
 
 export interface SaleCreateInput {
   batchId: string;
-  customerId: string;
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
   quantity: number;
   unitPrice: number;
   amountPaid: number;
-  date: string;
+  date?: string;
 }
 
 export interface LossCreateInput {
   batchId: string;
   quantity: number;
-  date: string;
+  date?: string;
   reason?: string;
 }
 
@@ -72,10 +74,10 @@ export interface BatchExpenseCreateInput {
 }
 
 export interface FixedExpenseCreateInput {
-  category: string;
   description: string;
   amount: number;
-  date: string;
+  date?: string;
+  category?: string;
 }
 
 export interface ReportFinancials {

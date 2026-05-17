@@ -20,8 +20,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const PORT = process.env.PORT || 3000;
-
 app.use('/api/register', registerRoutes);
 app.use('/api/login', loginRoutes);
 app.use('/api/batches', batchRoutes);
@@ -39,6 +37,5 @@ app.use('/api/batch-expenses', batchExpenseRoutes);
 import { errorMiddleware } from './middlewares/error.js';
 app.use(errorMiddleware);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3333;
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

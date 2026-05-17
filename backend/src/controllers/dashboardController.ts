@@ -1,12 +1,14 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { getDashboardSummary } from '../services/dashboardService.js';
 
-async function getSummary(req: Request, res: Response) {
+async function getSummary(req: Request, res: Response, next: NextFunction) {
     try {
-        const summary = await getDashboardSummary();
+        const month = req.query.month ? Number(req.query.month) : undefined;
+        const year = req.query.year ? Number(req.query.year) : undefined;
+        const summary = await getDashboardSummary(req.userId!, month, year);
         return res.status(200).json(summary);
-    } catch (error: any) {
-        return res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+        next(error);
     }
 }
 

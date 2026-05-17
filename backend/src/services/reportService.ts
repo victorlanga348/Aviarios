@@ -1,6 +1,21 @@
+import { Prisma } from "@prisma/client";
 import prisma from "../config/db.js";
-async function getBatchReport() {
+
+async function getBatchReport(userId: string, month?: number, year?: number) {
+    const whereClause: Prisma.BatchWhereInput = { userId };
+    
+    if (month !== undefined && year !== undefined) {
+        const startOfMonth = new Date(year, month - 1, 1);
+        const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+        
+        whereClause.startDate = {
+            gte: startOfMonth,
+            lte: endOfMonth
+        };
+    }
+
     const batches = await prisma.batch.findMany({
+        where: whereClause,
         include: {
             sales: true,
             losses: true,

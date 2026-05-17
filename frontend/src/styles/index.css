@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-secondary: var(--secondary);
+}
+
+@layer base {
+  :root {
+    --background: #020617;
+    --foreground: #f8fafc;
+    --card: #0f172a;
+    --primary: #10b981;
+    --muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.06);
+    --secondary: #1e293b;
+    --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .light {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --primary: #059669;
+    --muted: #64748b;
+    --border: #cbd5e1;
+    --secondary: #f1f5f9;
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+body {
+  @apply bg-background text-foreground antialiased selection:bg-primary/30;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+/* Prevent native date inputs from overflowing their containers */
+input[type="date"] {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: block;
+}

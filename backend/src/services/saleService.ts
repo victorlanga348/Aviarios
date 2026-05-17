@@ -1,43 +1,86 @@
 import prisma from "../config/db.js";
 import { BatchStatus } from "@prisma/client";
 
-async function registerSale(batchId: string, quantity: number, customerId: string) {
+async function registerSale(userId: string, batchId: string, quantity: number, customerIdentifier: string, unitPrice?: number, amountPaid: number = 0, customerPhone?: string) {
     return await prisma.$transaction(async (tx) => {
         const batch = await tx.batch.findUnique({
-            where: { id: batchId }
+            where: { id: batchId, userId }
         });
 
-        if (!batch) throw new Error('Lote não encontrado');
+        if (!batch) throw new Error('Lote não encontrado ou não pertence a este usuário');
         if (batch.status === BatchStatus.CLOSED) throw new Error('O lote está fechado');
 
-        const config = await tx.configuration.findUnique({
-            where: { id: 'global' }
-        });
+        // Lógica de Cliente: Tenta buscar por ID (UUID) ou Nome (Lowercase)
+        let customer;
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(customerIdentifier);
 
-        if (!config || config.birdSellingPrice <= 0) {
-            throw new Error('Preço de venda universal não configurado. Por favor, configure o preço primeiro.');
+        if (isUUID) {
+            customer = await tx.customer.findUnique({ 
+                where: { id: customerIdentifier, userId } 
+            });
+        } else {
+            const normalizedName = customerIdentifier.trim().toLowerCase();
+            customer = await tx.customer.findFirst({ 
+                where: { name: normalizedName, userId } 
+            });
+            
+            if (!customer) {
+                customer = await tx.customer.create({
+                    data: { 
+                        name: normalizedName,
+                        phone: customerPhone ?? null,
+                        userId
+                    }
+                });
+            }
         }
 
-        const finalPrice = config.birdSellingPrice;
+        if (!customer) throw new Error('Cliente não encontrado ou não pôde ser criado');
+
+        // Se o preço unitário não foi passado, tenta usar o global
+        let finalPrice = unitPrice;
+        if (!finalPrice || finalPrice <= 0) {
+            const config = await tx.configuration.findUnique({ where: { id: userId } });
+            if (!config || config.birdSellingPrice <= 0) {
+                throw new Error('Preço de venda não fornecido e preço global não configurado.');
+            }
+            finalPrice = config.birdSellingPrice;
+        }
 
         const totalValue = quantity * finalPrice;
+        const balance = totalValue - amountPaid;
+        const status = balance <= 0 ? "PAGO" : (amountPaid > 0 ? "PARCIALMENTE_PAGO" : "PENDENTE");
 
         const sale = await tx.sale.create({
             data: {
                 batchId,
                 quantity,
-                customerId,
+                customerId: customer.id,
                 unitPrice: finalPrice,
                 totalValue,
-                balance: totalValue, 
-                status: "PENDENTE"
+                amountPaid,
+                balance,
+                status,
+                userId
             }
         });
+
+        // Se houve pagamento inicial, registra na tabela de pagamentos
+        if (amountPaid > 0) {
+            await tx.payment.create({
+                data: {
+                    saleId: sale.id,
+                    amount: amountPaid,
+                    paymentType: "DINHEIRO" // Default inicial
+                }
+            });
+        }
 
         try {
             const updatedBatch = await tx.batch.update({
                 where: { 
                     id: batchId,
+                    userId,
                     status: BatchStatus.ACTIVE, 
                     actualQuantity: { gte: quantity } 
                 },
@@ -48,7 +91,7 @@ async function registerSale(batchId: string, quantity: number, customerId: strin
 
             if (updatedBatch.actualQuantity === 0) {
                 await tx.batch.update({
-                    where: { id: batchId },
+                    where: { id: batchId, userId },
                     data: { status: BatchStatus.CLOSED }
                 });
             }
@@ -60,24 +103,24 @@ async function registerSale(batchId: string, quantity: number, customerId: strin
     });
 }
 
-async function deleteSale(saleId: string) {
+async function deleteSale(userId: string, saleId: string) {
     return await prisma.$transaction(async (tx) => {
         const sale = await tx.sale.findUnique({
-            where: { id: saleId }
+            where: { id: saleId, userId }
         });
 
-        if (!sale) throw new Error('Venda não encontrada');
+        if (!sale) throw new Error('Venda não encontrada ou não pertence a este usuário');
 
         await tx.payment.deleteMany({
             where: { saleId }
         });
 
         await tx.sale.delete({
-            where: { id: saleId }
+            where: { id: saleId, userId }
         });
 
         await tx.batch.update({
-            where: { id: sale.batchId },
+            where: { id: sale.batchId, userId },
             data: {
                 actualQuantity: { increment: sale.quantity },
                 status: BatchStatus.ACTIVE
@@ -88,30 +131,57 @@ async function deleteSale(saleId: string) {
     });
 }
 
-async function listSales(batchId: string) {
+async function listSales(userId: string, batchId: string) {
     const batch = await prisma.batch.findUnique({
         where: {
-            id: batchId
+            id: batchId,
+            userId
         }
     });
 
     if (!batch) {
-        throw new Error('Batch not found');
+        throw new Error('Batch not found or unauthorized');
     }
 
     const sales = await prisma.sale.findMany({
         where: {
-            batchId
+            batchId,
+            userId
+        },
+        include: {
+            customer: true,
+            batch: true
         }
     });
     return sales;
 }
 
-async function listClientSales(clientId: string) {
+async function listAllSales(userId: string) {
+    const sales = await prisma.sale.findMany({
+        where: { userId },
+        include: {
+            customer: true,
+            batch: true
+        },
+        orderBy: {
+            date: 'desc'
+        }
+    });
+
+    // Flatten to include names for easier consumption in frontend
+    return sales.map(s => ({
+        ...s,
+        batchName: s.batch.name,
+        customerName: s.customer.name
+    }));
+}
+
+async function listClientSales(userId: string, clientId: string) {
     const clientWithSales = await prisma.customer.findUnique({
-        where: { id: clientId },
+        where: { id: clientId, userId },
         include: {
             sales: {
+                where: { userId },
                 include: {
                     batch: true
                 }
@@ -120,16 +190,17 @@ async function listClientSales(clientId: string) {
     });
 
     if (!clientWithSales) {
-        throw new Error('Client not found');
+        throw new Error('Client not found or unauthorized');
     }
 
     return clientWithSales;
 }
 
-async function getClientDebt(clientId: string) {
+async function getClientDebt(userId: string, clientId: string) {
     const sales = await prisma.sale.findMany({
         where: { 
             customerId: clientId,
+            userId,
             status: { in: ['PENDENTE', 'PARCIALMENTE_PAGO'] }
         },
         select: {
@@ -145,4 +216,4 @@ async function getClientDebt(clientId: string) {
     };
 }
 
-export { registerSale, listSales, listClientSales, deleteSale, getClientDebt }
+export { registerSale, listSales, listAllSales, listClientSales, deleteSale, getClientDebt }

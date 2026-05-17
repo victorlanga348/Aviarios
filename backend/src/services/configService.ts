@@ -1,14 +1,14 @@
 import prisma from '../config/db.js';
 
-export async function getConfiguration() {
+export async function getConfiguration(userId: string) {
     let config = await prisma.configuration.findUnique({
-        where: { id: 'global' }
+        where: { id: userId }
     });
 
     if (!config) {
         config = await prisma.configuration.create({
             data: {
-                id: 'global',
+                id: userId,
                 birdSellingPrice: 0
             }
         });
@@ -17,12 +17,12 @@ export async function getConfiguration() {
     return config;
 }
 
-export async function updateBirdSellingPrice(price: number) {
+export async function updateBirdSellingPrice(userId: string, price: number) {
     return await prisma.configuration.upsert({
-        where: { id: 'global' },
+        where: { id: userId },
         update: { birdSellingPrice: price },
         create: {
-            id: 'global',
+            id: userId,
             birdSellingPrice: price
         }
     });

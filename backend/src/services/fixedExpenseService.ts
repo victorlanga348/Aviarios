@@ -1,22 +1,24 @@
 import prisma from "../config/db.js";
 
-async function createFixedExpense(description: string, amount: number, date?: Date) {
+async function createFixedExpense(userId: string, description: string, amount: number, date?: Date) {
     const expense = await prisma.fixedExpense.create({
         data: {
             description,
             amount,
-            date: date || new Date()
+            date: date || new Date(),
+            userId
         }
     });
     return expense;
 }
 
-async function listFixedExpensesByMonth(month: number, year: number) {
+async function listFixedExpensesByMonth(userId: string, month: number, year: number) {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 1);
 
     const expenses = await prisma.fixedExpense.findMany({
         where: {
+            userId,
             date: {
                 gte: startDate,
                 lt: endDate
@@ -40,9 +42,9 @@ async function listFixedExpensesByMonth(month: number, year: number) {
     };
 }
 
-async function deleteFixedExpense(id: string) {
+async function deleteFixedExpense(userId: string, id: string) {
     await prisma.fixedExpense.delete({
-        where: { id }
+        where: { id, userId }
     });
     return { message: "Despesa fixa removida com sucesso" };
 }

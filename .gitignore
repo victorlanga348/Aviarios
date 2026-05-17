@@ -1,0 +1,48 @@
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.*
+
+# Build directories
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+build/
+**/build/
+
+# Prisma generated assets
+backend/prisma/generated/
+**/generated/prisma/
+
+# Local/Development files
+*.http
+**/*.http
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor/OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.tmp/
+temp/

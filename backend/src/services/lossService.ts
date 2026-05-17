@@ -1,16 +1,17 @@
 import prisma from "../config/db.js";
 import { BatchStatus } from "@prisma/client";
 
-async function registerLoss(batchId: string, quantity: number, reason: string) {
+async function registerLoss(userId: string, batchId: string, quantity: number, reason?: string) {
     return await prisma.$transaction(async (tx) => {
         const batch = await tx.batch.findUnique({
             where: {
-                id: batchId
+                id: batchId,
+                userId
             }
         });
 
         if (!batch) {
-            throw new Error('Lote não encontrado');
+            throw new Error('Lote não encontrado ou não pertence a este usuário');
         }
 
         if (batch.status === BatchStatus.CLOSED) {
@@ -21,7 +22,7 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
             data: {
                 batchId,
                 quantity,
-                reason
+                reason: reason ?? null
             }
         });
 
@@ -29,6 +30,7 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
             const updatedBatch = await tx.batch.update({
                 where: {
                     id: batchId,
+                    userId,
                     status: BatchStatus.ACTIVE,
                     actualQuantity: { gte: quantity }
                 },
@@ -41,7 +43,7 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
 
             if (updatedBatch.actualQuantity === 0) {
                 await tx.batch.update({
-                    where: { id: batchId },
+                    where: { id: batchId, userId },
                     data: { status: BatchStatus.CLOSED }
                 });
             }
@@ -53,15 +55,16 @@ async function registerLoss(batchId: string, quantity: number, reason: string) {
     });
 }
 
-async function listLosses(batchId: string) {
+async function listLosses(userId: string, batchId: string) {
     const batch = await prisma.batch.findUnique({
         where: {
-            id: batchId
+            id: batchId,
+            userId
         }
     });
 
     if (!batch) {
-        throw new Error('Lote não encontrado');
+        throw new Error('Lote não encontrado ou não pertence a este usuário');
     }
 
     const losses = await prisma.loss.findMany({

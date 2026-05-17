@@ -2,6 +2,7 @@ import { Router } from "express";
 import { 
     registerSaleController, 
     listSalesController, 
+    listAllSalesController, 
     listClientSalesController, 
     deleteSaleController, 
     getClientDebtController 
@@ -10,6 +11,7 @@ import { authMiddleware } from "../../middlewares/auth.js";
 
 const router = Router();
 router.post("/", authMiddleware, registerSaleController);
+router.get("/", authMiddleware, listAllSalesController);
 router.get("/:batchId", authMiddleware, listSalesController);
 router.get("/clients/:clientId", authMiddleware, listClientSalesController);
 router.delete("/:id", authMiddleware, deleteSaleController);

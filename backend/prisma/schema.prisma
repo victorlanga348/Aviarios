@@ -10,10 +10,15 @@ datasource db {
 
 // 1. Usuário (Acesso ao sistema)
 model User {
-  id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  password String
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  password      String
+  batches       Batch[]
+  customers     Customer[]
+  sales         Sale[]
+  fixedExpenses FixedExpense[]
+  configuration Configuration?
 }
 
 // 2. Lote (O Ônibus/Gaveta - Representa cada compra de aves)
@@ -26,6 +31,8 @@ model Batch {
   costPerBird     Float          // Preço pago por cada ave pequena
   transportCost   Float          @default(0) // Custo de transporte do lote
   status          BatchStatus    @default(ACTIVE) // ACTIVE ou CLOSED
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   // Relações
   expenses        BatchExpense[] // Custos de Ração e Vacina deste lote
@@ -34,6 +41,7 @@ model Batch {
 
   @@index([status])
   @@index([startDate])
+  @@index([userId])
 }
 
 enum BatchStatus {
@@ -51,7 +59,7 @@ model BatchExpense {
   quantity    Float?   // Opcional: ex: "10 sacos"
   createdAt   DateTime @default(now())
 
-  batch       Batch    @relation(fields: [batchId], references: [id])
+  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
 }
@@ -64,15 +72,19 @@ model Loss {
   reason    String?
   date      DateTime @default(now())
 
-  batch     Batch    @relation(fields: [batchId], references: [id])
+  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
 }
 
 // 5. Clientes (O Caderninho de nomes)
 model Customer {
-  id    String @id @default(uuid())
-  name  String
-  phone String?
-  sales Sale[]
+  id     String @id @default(uuid())
+  name   String
+  phone  String?
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sales  Sale[]
+
+  @@index([userId])
 }
 
 // 6. Vendas (O Registro da transação)
@@ -84,6 +96,8 @@ model Sale {
   unitPrice    Float
   totalValue   Float     // quantidade * unitPrice
   date         DateTime  @default(now())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Dinheiro pago
   amountPaid   Float     @default(0)
@@ -99,6 +113,7 @@ model Sale {
 
   @@index([date])
   @@index([customerId])
+  @@index([userId])
 }
 
 // 7. Pagamentos (Para controlar o "Fiado")
@@ -109,7 +124,7 @@ model Payment {
   paymentType PaymentType @default(DINHEIRO)
   date        DateTime @default(now())
 
-  sale        Sale     @relation(fields: [saleId], references: [id])
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
 }
 
 enum PaymentType {
@@ -130,12 +145,17 @@ model FixedExpense {
   description String   // Ex: "Conta de Luz"
   amount      Float
   date        DateTime @default(now()) // O mês será extraído daqui
+  userId      String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([date])
+  @@index([userId])
 }
+
 // 10. Configurações Globais (Preços, taxas, etc)
 model Configuration {
-  id                String   @id @default("global")
+  id                String   @id // O id será o userId do usuário correspondente
   birdSellingPrice  Float    @default(0)
   updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [id], references: [id], onDelete: Cascade)
 }

@@ -3,22 +3,22 @@ import { getConfiguration, updateBirdSellingPrice } from '../services/configServ
 
 export async function getConfigController(req: Request, res: Response, next: NextFunction) {
     try {
-        const config = await getConfiguration();
+        const config = await getConfiguration(req.userId!);
         res.json(config);
-    } catch (error) {
+    } catch (error: unknown) {
         next(error);
     }
 }
 
 export async function updateConfigController(req: Request, res: Response, next: NextFunction) {
     try {
-        const { birdSellingPrice } = req.body;
+        const { birdSellingPrice } = req.body as { birdSellingPrice?: number };
         if (birdSellingPrice === undefined) {
             return res.status(400).json({ error: 'Preço de venda é obrigatório' });
         }
-        const config = await updateBirdSellingPrice(Number(birdSellingPrice));
+        const config = await updateBirdSellingPrice(req.userId!, Number(birdSellingPrice));
         res.json({ message: 'Configuração atualizada com sucesso', config });
-    } catch (error) {
+    } catch (error: unknown) {
         next(error);
     }
 }

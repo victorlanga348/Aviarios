@@ -1,14 +1,15 @@
 import prisma from "../config/db.js";
 import { PaymentStatus, PaymentType } from "@prisma/client";
+import { getErrorMessage } from '../types/express.js';
 
-async function createPayment(saleId: string, amount: number, paymentType: PaymentType) {
+async function createPayment(userId: string, saleId: string, amount: number, paymentType: PaymentType) {
     return await prisma.$transaction(async (tx) => {
         const sale = await tx.sale.findUnique({
-            where: { id: saleId }
+            where: { id: saleId, userId }
         });
 
         if (!sale) {
-            throw new Error('Sale not found');
+            throw new Error('Sale not found or unauthorized');
         }
 
         const payment = await tx.payment.create({
@@ -33,7 +34,7 @@ async function createPayment(saleId: string, amount: number, paymentType: Paymen
         const status = balance === 0 ? PaymentStatus.PAGO : PaymentStatus.PARCIALMENTE_PAGO;
 
         await tx.sale.update({
-            where: { id: saleId },
+            where: { id: saleId, userId },
             data: {
                 status,
                 amountPaid: totalPaid,
@@ -45,15 +46,23 @@ async function createPayment(saleId: string, amount: number, paymentType: Paymen
     });
 }
 
-async function listPayments(saleId: string) {
+async function listPayments(userId: string, saleId: string) {
     try {
+        const sale = await prisma.sale.findUnique({
+            where: { id: saleId, userId }
+        });
+
+        if (!sale) {
+            throw new Error('Sale not found or unauthorized');
+        }
+
         const payments = await prisma.payment.findMany({
             where: { saleId }
         });
         return payments;
-    } catch (error) {
+    } catch (error: unknown) {
         console.error(error);
-        throw new Error('Failed to list payments');
+        throw new Error(getErrorMessage(error));
     }
 }
 

@@ -1,13 +1,15 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { getBatchReport } from '../services/reportService.js';
 
-const getBatchReportController = async (req: Request, res: Response) => {
+const getBatchReportController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const report = await getBatchReport();
+        const month = req.query.month ? Number(req.query.month) : undefined;
+        const year = req.query.year ? Number(req.query.year) : undefined;
+        const report = await getBatchReport(req.userId!, month, year);
         res.status(200).json(report);
-    } catch (error: any) {
-        res.status(500).json({ message: error.message });
+    } catch (error: unknown) {
+        next(error);
     }
-}
+};
 
 export { getBatchReportController };

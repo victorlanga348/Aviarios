@@ -1,22 +1,28 @@
 import prisma from "../config/db.js";
 
-async function getDashboardSummary() {
+async function getDashboardSummary(userId: string, month?: number, year?: number) {
     const today = new Date();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+    const targetMonth = month !== undefined ? month - 1 : today.getMonth();
+    const targetYear = year !== undefined ? year : today.getFullYear();
+
+    const startOfMonth = new Date(targetYear, targetMonth, 1);
+    const endOfMonth = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999);
 
     const activeBatchesSum = await prisma.batch.aggregate({
-        where: { status: 'ACTIVE' },
+        where: { status: 'ACTIVE', userId },
         _sum: { actualQuantity: true }
     });
     const totalLiveBirds = activeBatchesSum._sum.actualQuantity || 0;
 
     const totalDebtSum = await prisma.sale.aggregate({
+        where: { userId },
         _sum: { balance: true }
     });
     const totalToReceive = totalDebtSum._sum.balance || 0;
+    
     const paymentsMonth = await prisma.payment.aggregate({
         where: {
+            sale: { userId },
             date: {
                 gte: startOfMonth,
                 lte: endOfMonth
@@ -28,6 +34,7 @@ async function getDashboardSummary() {
 
     const salesMonth = await prisma.sale.findMany({
         where: {
+            userId,
             date: {
                 gte: startOfMonth,
                 lte: endOfMonth
@@ -55,6 +62,7 @@ async function getDashboardSummary() {
     //Saídas de Caixa / Despesas operacionais do mês (Ração, Vacina)
     const batchExpensesMonth = await prisma.batchExpense.aggregate({
         where: {
+            batch: { userId },
             createdAt: {
                 gte: startOfMonth,
                 lte: endOfMonth
@@ -66,6 +74,7 @@ async function getDashboardSummary() {
 
     const fixedExpensesMonth = await prisma.fixedExpense.aggregate({
         where: {
+            userId,
             date: {
                 gte: startOfMonth,
                 lte: endOfMonth
@@ -78,6 +87,7 @@ async function getDashboardSummary() {
     //Investimento em Novos Lotes (Saída de caixa para compra de aves)
     const newBatchesMonth = await prisma.batch.findMany({
         where: {
+            userId,
             startDate: {
                 gte: startOfMonth,
                 lte: endOfMonth

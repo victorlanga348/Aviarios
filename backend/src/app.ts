@@ -12,6 +12,7 @@ import fixedExpenseRoutes from './routes/private/fixedExpense.routes.js';
 import dashboardRoutes from './routes/private/dashboard.routes.js';
 import configRoutes from './routes/private/config.routes.js';
 import reportRoutes from './routes/private/report.routes.js';
+import batchExpenseRoutes from './routes/private/batchExpense.routes.js';
 dotenv.config();
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/fixed-expenses', fixedExpenseRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/batch-expenses', batchExpenseRoutes);
 
 // Middleware de Erro Global
 import { errorMiddleware } from './middlewares/error.js';

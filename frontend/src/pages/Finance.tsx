@@ -6,6 +6,7 @@ import { FixedExpenseModal } from '../components/Finance/FixedExpenseModal';
 import { BatchExpenseModal } from '../components/Finance/BatchExpenseModal';
 import { DeleteConfirmModal } from '../components/Finance/DeleteConfirmModal';
 import { Zap, Beef, Trash2, Calendar } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function Finance() {
   const [isLossModalOpen, setIsLossModalOpen] = useState(false);
@@ -163,26 +164,36 @@ export function Finance() {
           <>
             {/* Visualização de Cards para telas pequenas (Mobile) */}
             <div className="md:hidden space-y-4">
-              {fixedExpensesData.expenses.map((expense) => (
-                <div key={expense.id} className="bg-secondary/20 p-5 rounded-2xl border border-border flex justify-between items-center relative group">
-                  <div className="space-y-1">
-                    <p className="font-bold text-foreground text-sm leading-tight">{expense.description}</p>
-                    <p className="text-muted text-[10px] uppercase font-black tracking-wider">
-                      {new Date(expense.date).toLocaleDateString('pt-PT')}
-                    </p>
-                    <p className="font-black text-primary text-base pt-1">
-                      {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setExpenseToDelete({ id: expense.id, description: expense.description, amount: expense.amount })}
-                    className="p-3 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                    title="Remover Despesa"
+              <AnimatePresence mode="popLayout">
+                {fixedExpensesData.expenses.map((expense) => (
+                  <motion.div 
+                    key={expense.id} 
+                    layout
+                    initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -15, transition: { duration: 0.15 } }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                    className="bg-secondary/20 p-5 rounded-2xl border border-border flex justify-between items-center relative group"
                   >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              ))}
+                    <div className="space-y-1">
+                      <p className="font-bold text-foreground text-sm leading-tight">{expense.description}</p>
+                      <p className="text-muted text-[10px] uppercase font-black tracking-wider">
+                        {new Date(expense.date).toLocaleDateString('pt-PT')}
+                      </p>
+                      <p className="font-black text-primary text-base pt-1">
+                        {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setExpenseToDelete({ id: expense.id, description: expense.description, amount: expense.amount })}
+                      className="p-3 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                      title="Remover Despesa"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
 
             {/* Tabela Tradicional para Telas Maiores (Desktop) */}
@@ -197,26 +208,36 @@ export function Finance() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {fixedExpensesData.expenses.map((expense) => (
-                    <tr key={expense.id} className="hover:bg-secondary/20 transition-colors group">
-                      <td className="py-4 font-bold text-foreground text-sm">{expense.description}</td>
-                      <td className="py-4 text-muted text-xs">
-                        {new Date(expense.date).toLocaleDateString('pt-PT')}
-                      </td>
-                      <td className="py-4 font-black text-foreground text-sm text-right">
-                        {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
-                      </td>
-                      <td className="py-4 text-center">
-                        <button
-                          onClick={() => setExpenseToDelete({ id: expense.id, description: expense.description, amount: expense.amount })}
-                          className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                          title="Remover Despesa"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  <AnimatePresence mode="popLayout">
+                    {fixedExpensesData.expenses.map((expense) => (
+                      <motion.tr 
+                        key={expense.id} 
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -30, transition: { duration: 0.18 } }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                        className="hover:bg-secondary/20 transition-colors group"
+                      >
+                        <td className="py-4 font-bold text-foreground text-sm">{expense.description}</td>
+                        <td className="py-4 text-muted text-xs">
+                          {new Date(expense.date).toLocaleDateString('pt-PT')}
+                        </td>
+                        <td className="py-4 font-black text-foreground text-sm text-right">
+                          {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                        </td>
+                        <td className="py-4 text-center">
+                          <button
+                            onClick={() => setExpenseToDelete({ id: expense.id, description: expense.description, amount: expense.amount })}
+                            className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                            title="Remover Despesa"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
                 </tbody>
               </table>
             </div>

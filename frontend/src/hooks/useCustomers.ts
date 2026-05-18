@@ -46,13 +46,29 @@ export function useCustomers() {
     }
   });
 
+  const deleteCustomerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/clients/${id}`);
+    },
+    onSuccess: () => {
+      toast.success('Cliente removido com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['customers-with-debt'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['client-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    }
+  });
+
   return {
     customers: customersQuery.data ?? [],
     isLoading: customersQuery.isLoading,
     createCustomer: createCustomerMutation.mutateAsync,
     isCreating: createCustomerMutation.isPending,
     registerPayment: registerPaymentMutation.mutateAsync,
-    isPaying: registerPaymentMutation.isPending
+    isPaying: registerPaymentMutation.isPending,
+    deleteCustomer: deleteCustomerMutation.mutateAsync,
+    isDeleting: deleteCustomerMutation.isPending
   };
 }
 

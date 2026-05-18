@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { createClient, listClients } from "../services/clientService.js";
+import { createClient, listClients, deleteClient } from "../services/clientService.js";
 import { getErrorMessage } from '../types/express.js';
 
 const createClientController = async (req: Request, res: Response) => {
@@ -43,4 +43,20 @@ const listClientByPhone = async (req: Request, res: Response) => {
     }
 };
 
-export { createClientController, listClientsController, listClientByName, listClientByPhone };
+const deleteClientController = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params as { id: string };
+        const result = await deleteClient(req.userId!, id);
+        res.status(200).json(result);
+    } catch (error: unknown) {
+        res.status(500).json({ message: getErrorMessage(error) });
+    }
+};
+
+export { 
+    createClientController, 
+    listClientsController, 
+    listClientByName, 
+    listClientByPhone,
+    deleteClientController 
+};

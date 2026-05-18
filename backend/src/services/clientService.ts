@@ -38,4 +38,20 @@ async function listClients(userId: string) {
     });
 }
 
-export { createClient, listClients }
+async function deleteClient(userId: string, clientId: string) {
+    const client = await prisma.customer.findFirst({
+        where: { id: clientId, userId }
+    });
+
+    if (!client) {
+        throw new Error("Cliente não encontrado ou não autorizado");
+    }
+
+    await prisma.customer.delete({
+        where: { id: clientId }
+    });
+
+    return { message: "Cliente excluído com sucesso" };
+}
+
+export { createClient, listClients, deleteClient }

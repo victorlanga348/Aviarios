@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useCustomers, type CustomerWithDebt } from '../hooks/useCustomers';
 import { CustomerDetailsModal } from '../components/Customers/CustomerDetailsModal';
-import { Users, Phone, AlertCircle, CheckCircle2, Search } from 'lucide-react';
+import { DeleteConfirmModal } from '../components/Finance/DeleteConfirmModal';
+import { Users, Phone, AlertCircle, CheckCircle2, Search, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function Customers() {
-  const { customers, isLoading } = useCustomers();
+  const { customers, isLoading, deleteCustomer, isDeleting } = useCustomers();
   const [selectedClient, setSelectedClient] = useState<{ id: string; name: string } | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<CustomerWithDebt | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredCustomers = customers.filter(c => 
@@ -55,38 +58,57 @@ export function Customers() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCustomers.map((customer: CustomerWithDebt) => (
-            <div 
-              key={customer.id} 
-              onClick={() => setSelectedClient({ id: customer.id, name: customer.name })}
-              className="bg-card border border-border hover:border-primary/50 transition cursor-pointer p-5 rounded-2xl flex flex-col gap-4 shadow-[var(--shadow)] hover:scale-[1.02] active:scale-95 group"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{customer.name}</h3>
-                  <p className="text-xs text-muted flex items-center gap-1 mt-1 font-medium">
-                    <Phone size={12} className="text-primary/60" /> {customer.phone || 'Sem contato'}
-                  </p>
+          <AnimatePresence mode="popLayout">
+            {filteredCustomers.map((customer: CustomerWithDebt) => (
+              <motion.div 
+                key={customer.id} 
+                layout
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -15, transition: { duration: 0.15 } }}
+                transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                onClick={() => setSelectedClient({ id: customer.id, name: customer.name })}
+                className="bg-card border border-border hover:border-primary/50 transition cursor-pointer p-5 rounded-2xl flex flex-col gap-4 shadow-[var(--shadow)] hover:scale-[1.02] active:scale-95 group relative"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{customer.name}</h3>
+                    <p className="text-xs text-muted flex items-center gap-1 mt-1 font-medium">
+                      <Phone size={12} className="text-primary/60" /> {customer.phone || 'Sem contato'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {customer.totalDebt > 0 ? (
+                      <span className="flex items-center gap-1 text-[10px] font-black text-rose-500 uppercase bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
+                        <AlertCircle size={12} /> Em Dívida
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[10px] font-black text-emerald-500 uppercase bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                        <CheckCircle2 size={12} /> Tudo Certo
+                      </span>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCustomerToDelete(customer);
+                      }}
+                      className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                      title="Excluir Cliente"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
-                {customer.totalDebt > 0 ? (
-                  <span className="flex items-center gap-1 text-[10px] font-black text-rose-500 uppercase bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
-                    <AlertCircle size={12} /> Em Dívida
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-[10px] font-black text-emerald-500 uppercase bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                    <CheckCircle2 size={12} /> Tudo Certo
-                  </span>
-                )}
-              </div>
 
-              <div className="bg-secondary/40 p-3 rounded-xl border border-border/50 flex justify-between items-center transition-colors group-hover:bg-secondary/60">
-                <span className="text-[10px] text-muted uppercase font-bold tracking-wider">Saldo Devedor</span>
-                <span className={`font-black text-sm ${customer.totalDebt > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                  MZN {customer.totalDebt.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          ))}
+                <div className="bg-secondary/40 p-3 rounded-xl border border-border/50 flex justify-between items-center transition-colors group-hover:bg-secondary/60">
+                  <span className="text-[10px] text-muted uppercase font-bold tracking-wider">Saldo Devedor</span>
+                  <span className={`font-black text-sm ${customer.totalDebt > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                    MZN {customer.totalDebt.toLocaleString()}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {customers.length === 0 && (
             <div className="col-span-full text-center py-20 text-muted border-2 border-dashed border-border rounded-[2rem] bg-secondary/10">
@@ -101,6 +123,26 @@ export function Customers() {
         onClose={() => setSelectedClient(null)}
         clientId={selectedClient?.id || null}
         clientName={selectedClient?.name || ''}
+      />
+
+      <DeleteConfirmModal
+        isOpen={customerToDelete !== null}
+        onClose={() => setCustomerToDelete(null)}
+        onConfirm={async () => {
+          if (customerToDelete) {
+            await deleteCustomer(customerToDelete.id);
+            setCustomerToDelete(null);
+          }
+        }}
+        isLoading={isDeleting}
+        title="Excluir Cliente?"
+        description={
+          customerToDelete && customerToDelete.totalDebt > 0
+            ? "ATENÇÃO: Este cliente possui dívidas ativas de fiado! Ao excluí-lo, todas as vendas pendentes e históricos de pagamento associados serão eliminados do sistema permanentemente."
+            : "Você está prestes a excluir este cliente e todo o histórico de compras associado de forma permanente."
+        }
+        itemName={customerToDelete?.name}
+        itemValue={customerToDelete && customerToDelete.totalDebt > 0 ? `Dívida: MZN ${customerToDelete.totalDebt.toLocaleString()}` : undefined}
       />
     </div>
   );

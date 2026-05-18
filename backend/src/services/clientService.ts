@@ -47,8 +47,24 @@ async function deleteClient(userId: string, clientId: string) {
         throw new Error("Cliente não encontrado ou não autorizado");
     }
 
-    await prisma.customer.delete({
-        where: { id: clientId }
+    await prisma.$transaction(async (tx) => {
+        const sales = await tx.sale.findMany({
+            where: { customerId: clientId }
+        });
+        const saleIds = sales.map(s => s.id);
+
+        if (saleIds.length > 0) {
+            await tx.payment.deleteMany({
+                where: { saleId: { in: saleIds } }
+            });
+            await tx.sale.deleteMany({
+                where: { id: { in: saleIds } }
+            });
+        }
+
+        await tx.customer.delete({
+            where: { id: clientId }
+        });
     });
 
     return { message: "Cliente excluído com sucesso" };

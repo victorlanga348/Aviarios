@@ -44,13 +44,23 @@ async function updateBatchStatus(userId: string, id: string, status: BatchStatus
 
 async function deleteBatch(userId: string, id: string) {
     return await prisma.$transaction(async (tx) => {
-        // 1. Delete all losses
         await tx.loss.deleteMany({ where: { batchId: id } });
-        // 2. Delete all batch expenses
         await tx.batchExpense.deleteMany({ where: { batchId: id } });
-        // 3. Delete all sales (cascades to payments)
-        await tx.sale.deleteMany({ where: { batchId: id } });
-        // 4. Delete the batch itself
+        
+        const sales = await tx.sale.findMany({
+            where: { batchId: id }
+        });
+        const saleIds = sales.map(s => s.id);
+        
+        if (saleIds.length > 0) {
+            await tx.payment.deleteMany({
+                where: { saleId: { in: saleIds } }
+            });
+            await tx.sale.deleteMany({
+                where: { id: { in: saleIds } }
+            });
+        }
+        
         const deleted = await tx.batch.delete({
             where: { id, userId }
         });

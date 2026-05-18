@@ -107,8 +107,8 @@ model Sale {
   status       PaymentStatus @default(PENDENTE)
 
   // Relações
-  batch        Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  customer     Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  batch        Batch     @relation(fields: [batchId], references: [id])
+  customer     Customer  @relation(fields: [customerId], references: [id])
   payments     Payment[] // Para controlar dívidas e pagamentos parciais
 
   @@index([date])

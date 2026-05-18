@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message = error.response?.data?.message || error.message || 'Ocorreu um erro inesperado';
+    const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Ocorreu um erro inesperado';
     
     toast.error(message);
 

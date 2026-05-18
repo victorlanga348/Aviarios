@@ -24,8 +24,8 @@ export function Login() {
       toast.success('Bem-vindo!');
       navigate('/');
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'Erro ao entrar. Verifique suas credenciais.');
+      const axiosError = err as { response?: { data?: { message?: string; error?: string } } };
+      setError(axiosError.response?.data?.message || axiosError.response?.data?.error || 'Erro ao entrar. Verifique suas credenciais.');
     } finally {
       setIsLoading(false);
     }

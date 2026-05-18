@@ -20,6 +20,7 @@ export function errorMiddleware(err: AppError, req: Request, res: Response, next
     // Retorna a resposta formatada
     res.status(status).json({
         error: message,
+        message: message, // Support both error and message fields
         // Em desenvolvimento, mostra o stack trace para facilitar o conserto.
         // Em produção, o stack é escondido por segurança.
         stack: process.env.NODE_ENV === 'development' ? err.stack : undefined

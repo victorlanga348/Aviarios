@@ -24,8 +24,8 @@ export function Register() {
       toast.success('Conta criada com sucesso! Faça login.');
       navigate('/login');
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'Erro ao criar conta. Tente outro email.');
+      const axiosError = err as { response?: { data?: { message?: string; error?: string } } };
+      setError(axiosError.response?.data?.message || axiosError.response?.data?.error || 'Erro ao criar conta. Tente outro email.');
     } finally {
       setIsLoading(false);
     }

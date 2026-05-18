@@ -44,6 +44,14 @@ export function useFinance(month?: number, year?: number) {
     },
   });
 
+  const deleteBatchExpense = useMutation({
+    mutationFn: (id: string) => api.delete(`/batch-expenses/${id}`),
+    onSuccess: () => {
+      toast.success('Despesa de insumo removida');
+      invalidateAll();
+    },
+  });
+
   const targetMonth = month ?? (new Date().getMonth() + 1);
   const targetYear = year ?? new Date().getFullYear();
 
@@ -74,8 +82,9 @@ export function useFinance(month?: number, year?: number) {
     registerBatchExpense: createBatchExpense.mutateAsync,
     registerFixedExpense: createFixedExpense.mutateAsync,
     removeFixedExpense: deleteFixedExpense.mutateAsync,
+    removeBatchExpense: deleteBatchExpense.mutateAsync,
     fixedExpensesData,
     isLoadingExpenses,
-    isProcessing: createLoss.isPending || createBatchExpense.isPending || createFixedExpense.isPending || deleteFixedExpense.isPending
+    isProcessing: createLoss.isPending || createBatchExpense.isPending || createFixedExpense.isPending || deleteFixedExpense.isPending || deleteBatchExpense.isPending
   };
 }

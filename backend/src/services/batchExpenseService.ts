@@ -34,4 +34,21 @@ async function listBatchExpenses(userId: string, batchId: string) {
     });
 }
 
-export { createBatchExpense, listBatchExpenses };
+async function deleteBatchExpense(userId: string, expenseId: string) {
+    const expense = await prisma.batchExpense.findUnique({
+        where: { id: expenseId },
+        include: { batch: true }
+    });
+
+    if (!expense || expense.batch.userId !== userId) {
+        throw new Error('Despesa de lote não encontrada ou não autorizada');
+    }
+
+    await prisma.batchExpense.delete({
+        where: { id: expenseId }
+    });
+
+    return { message: "Despesa excluída com sucesso" };
+}
+
+export { createBatchExpense, listBatchExpenses, deleteBatchExpense };

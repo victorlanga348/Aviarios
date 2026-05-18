@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { createBatchExpense, listBatchExpenses } from '../services/batchExpenseService.js';
+import { createBatchExpense, listBatchExpenses, deleteBatchExpense } from '../services/batchExpenseService.js';
 import { getErrorMessage } from '../types/express.js';
 
 async function createBatchExpenseController(req: Request, res: Response) {
@@ -27,4 +27,18 @@ async function listBatchExpensesController(req: Request, res: Response) {
     }
 }
 
-export { createBatchExpenseController, listBatchExpensesController };
+async function deleteBatchExpenseController(req: Request, res: Response) {
+    try {
+        const { id } = req.params as { id: string };
+        const result = await deleteBatchExpense(req.userId!, id);
+        res.status(200).json(result);
+    } catch (error: unknown) {
+        res.status(500).json({ message: getErrorMessage(error) });
+    }
+}
+
+export { 
+    createBatchExpenseController, 
+    listBatchExpensesController,
+    deleteBatchExpenseController 
+};

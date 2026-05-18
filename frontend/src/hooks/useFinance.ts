@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import type { LossCreateInput, BatchExpenseCreateInput, FixedExpenseCreateInput } from '../@types';
 
-export function useFinance() {
+export function useFinance(month?: number, year?: number) {
   const queryClient = useQueryClient();
 
   const invalidateAll = () => {
@@ -36,10 +36,46 @@ export function useFinance() {
     },
   });
 
+  const deleteFixedExpense = useMutation({
+    mutationFn: (id: string) => api.delete(`/fixed-expenses/${id}`),
+    onSuccess: () => {
+      toast.success('Despesa removida');
+      invalidateAll();
+    },
+  });
+
+  const targetMonth = month ?? (new Date().getMonth() + 1);
+  const targetYear = year ?? new Date().getFullYear();
+
+  const { data: fixedExpensesData, isLoading: isLoadingExpenses } = useQuery({
+    queryKey: ['finance', 'fixed-expenses', targetMonth, targetYear],
+    queryFn: async () => {
+      const response = await api.get('/fixed-expenses', {
+        params: { month: targetMonth, year: targetYear }
+      });
+      return response.data as {
+        expenses: Array<{
+          id: string;
+          description: string;
+          amount: number;
+          date: string;
+        }>;
+        total: number;
+        dailyValue: number;
+        month: number;
+        year: number;
+        daysInMonth: number;
+      };
+    }
+  });
+
   return {
     registerLoss: createLoss.mutateAsync,
     registerBatchExpense: createBatchExpense.mutateAsync,
     registerFixedExpense: createFixedExpense.mutateAsync,
-    isProcessing: createLoss.isPending || createBatchExpense.isPending || createFixedExpense.isPending
+    removeFixedExpense: deleteFixedExpense.mutateAsync,
+    fixedExpensesData,
+    isLoadingExpenses,
+    isProcessing: createLoss.isPending || createBatchExpense.isPending || createFixedExpense.isPending || deleteFixedExpense.isPending
   };
-}
+}

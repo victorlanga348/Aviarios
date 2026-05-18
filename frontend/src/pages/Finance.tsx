@@ -4,15 +4,26 @@ import { useBatches } from '../hooks/useBatches';
 import { LossModal } from '../components/Finance/LossModal';
 import { FixedExpenseModal } from '../components/Finance/FixedExpenseModal';
 import { BatchExpenseModal } from '../components/Finance/BatchExpenseModal';
-import { Zap, Beef } from 'lucide-react';
+import { Zap, Beef, Trash2, Calendar } from 'lucide-react';
 
 export function Finance() {
   const [isLossModalOpen, setIsLossModalOpen] = useState(false);
   const [isFixedExpenseModalOpen, setIsFixedExpenseModalOpen] = useState(false);
   const [isBatchExpenseModalOpen, setIsBatchExpenseModalOpen] = useState(false);
+
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   
   const { batches } = useBatches();
-  const { registerLoss, registerFixedExpense, registerBatchExpense, isProcessing } = useFinance();
+  const { 
+    registerLoss, 
+    registerFixedExpense, 
+    registerBatchExpense, 
+    removeFixedExpense,
+    fixedExpensesData,
+    isLoadingExpenses,
+    isProcessing 
+  } = useFinance(selectedMonth, selectedYear);
 
   return (
     <div className="space-y-10">
@@ -82,6 +93,111 @@ export function Finance() {
         </div>
       </div>
 
+      {/* Lista de Contas Mensais Detalhadas */}
+      <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+          <div>
+            <h3 className="text-xl font-black text-foreground flex items-center gap-2">
+              <Calendar className="text-primary" size={20} /> Detalhamento de Contas Mensais
+            </h3>
+            <p className="text-muted text-xs mt-1">Acompanhe e gerencie todos os custos fixos mensais do seu negócio.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all"
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(2000, i).toLocaleString('pt-PT', { month: 'long' })}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all"
+            >
+              {Array.from({ length: 5 }, (_, i) => {
+                const yearOption = new Date().getFullYear() - 2 + i;
+                return (
+                  <option key={yearOption} value={yearOption}>
+                    {yearOption}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+
+        {/* Resumo Rápido */}
+        {fixedExpensesData && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
+              <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Total Acumulado</p>
+              <p className="text-2xl font-black text-foreground">
+                {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(fixedExpensesData.total)}
+              </p>
+            </div>
+            <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
+              <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Custo Diário Médio (Prorrogado)</p>
+              <p className="text-2xl font-black text-primary">
+                {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(fixedExpensesData.dailyValue)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Tabela de Lançamentos */}
+        {isLoadingExpenses ? (
+          <div className="py-16 text-center text-muted font-bold text-sm">Carregando lançamentos...</div>
+        ) : !fixedExpensesData || fixedExpensesData.expenses.length === 0 ? (
+          <div className="py-16 text-center border-2 border-dashed border-border rounded-2xl bg-secondary/10">
+            <p className="text-muted text-sm font-bold">Nenhuma conta registrada para {new Date(2000, selectedMonth - 1).toLocaleString('pt-PT', { month: 'long' })} de {selectedYear}.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-xl">
+            <table className="w-full text-left border-collapse min-w-[500px]">
+              <thead>
+                <tr className="border-b border-border text-muted text-[9px] uppercase font-black tracking-widest">
+                  <th className="pb-4">Descrição</th>
+                  <th className="pb-4">Data de Lançamento</th>
+                  <th className="pb-4 text-right">Valor</th>
+                  <th className="pb-4 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {fixedExpensesData.expenses.map((expense) => (
+                  <tr key={expense.id} className="hover:bg-secondary/20 transition-colors group">
+                    <td className="py-4 font-bold text-foreground text-sm">{expense.description}</td>
+                    <td className="py-4 text-muted text-xs">
+                      {new Date(expense.date).toLocaleDateString('pt-PT')}
+                    </td>
+                    <td className="py-4 font-black text-foreground text-sm text-right">
+                      {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                    </td>
+                    <td className="py-4 text-center">
+                      <button
+                        onClick={async () => {
+                          if (confirm(`Deseja realmente remover a conta "${expense.description}" de ${new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}?`)) {
+                            await removeFixedExpense(expense.id);
+                          }
+                        }}
+                        className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                        title="Remover Despesa"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <LossModal 
         isOpen={isLossModalOpen}
         onClose={() => setIsLossModalOpen(false)}
@@ -116,3 +232,4 @@ export function Finance() {
     </div>
   );
 }
+

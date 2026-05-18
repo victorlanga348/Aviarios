@@ -42,4 +42,20 @@ async function updateBatchStatus(userId: string, id: string, status: BatchStatus
     return batch;
 }
 
-export { createBatch, listBatches, updateBatchStatus }
+async function deleteBatch(userId: string, id: string) {
+    return await prisma.$transaction(async (tx) => {
+        // 1. Delete all losses
+        await tx.loss.deleteMany({ where: { batchId: id } });
+        // 2. Delete all batch expenses
+        await tx.batchExpense.deleteMany({ where: { batchId: id } });
+        // 3. Delete all sales (cascades to payments)
+        await tx.sale.deleteMany({ where: { batchId: id } });
+        // 4. Delete the batch itself
+        const deleted = await tx.batch.delete({
+            where: { id, userId }
+        });
+        return deleted;
+    });
+}
+
+export { createBatch, listBatches, updateBatchStatus, deleteBatch }

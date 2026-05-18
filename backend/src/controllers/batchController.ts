@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { BatchStatus } from '@prisma/client';
-import { createBatch, listBatches, updateBatchStatus } from '../services/batchService.js';
+import { createBatch, listBatches, updateBatchStatus, deleteBatch } from '../services/batchService.js';
 import { getErrorMessage } from '../types/express.js';
 
 const createBatchController = async (req: Request, res: Response) => {
@@ -46,4 +46,14 @@ const updateBatchStatusController = async (req: Request, res: Response) => {
     }
 };
 
-export { createBatchController, listBatchesController, updateBatchStatusController };
+const deleteBatchController = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params as { id: string };
+        const batch = await deleteBatch(req.userId!, id);
+        res.status(200).json({ message: "Lote deletado com sucesso", batch });
+    } catch (error: unknown) {
+        res.status(500).json({ message: getErrorMessage(error) });
+    }
+};
+
+export { createBatchController, listBatchesController, updateBatchStatusController, deleteBatchController };

@@ -51,3 +51,145 @@ input[type="date"] {
   box-sizing: border-box;
   display: block;
 }
+
+/* Premium UX: Prevent selection on all interactive elements */
+button,
+a,
+svg,
+img,
+[role="button"],
+.select-none {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* ==========================================================================
+   PREMIUM MICRO-ANIMATIONS & INTERACTION TOKENS (SILKY SMOOTH LUXURY TIMING)
+   ========================================================================== */
+
+/* Define the ultra-smooth luxury transition curve */
+:root {
+  --premium-transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 1. Static Cards (No movement, only silky glow) */
+.bg-card, 
+.bg-card\/40 {
+  transition: var(--premium-transition) !important;
+}
+
+.bg-card:hover, 
+.bg-card\/40:hover {
+  border-color: rgba(16, 185, 129, 0.22) !important;
+  background-color: rgba(16, 185, 129, 0.02) !important; /* Extremely subtle elegant emerald tint */
+  box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.07) !important;
+}
+
+/* 2. Interactive / Clickable Cards (Smooth lift and shadow) */
+.bg-card\/50 {
+  transition: var(--premium-transition) !important;
+}
+
+.bg-card\/50:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 16px 36px -12px rgba(16, 185, 129, 0.12) !important;
+  cursor: pointer;
+}
+
+/* 3. Interactive Buttons (Silky tactile feedback + scaling) */
+button, 
+.btn,
+input[type="submit"] {
+  transition: var(--premium-transition) !important;
+}
+
+button:hover:not(:disabled), 
+.btn:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 8px 20px -8px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Primary Green Buttons Hover */
+button.bg-primary:hover,
+.btn-primary:hover {
+  background-color: #059669 !important; /* Elegant emerald deep */
+  border-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+/* Secondary / Outline Buttons Hover */
+button.bg-secondary:hover,
+button:hover:not(.bg-primary):not(.text-rose-500):not(:disabled) {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  color: #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Tactile Active click shrink (Immediate click response, smooth return) */
+button:active:not(:disabled), 
+.btn:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.1s ease !important; /* Fast response on click-down */
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* 4. Sidebar Navigation Links (Slide + glow effect) */
+a.flex.items-center.gap-4 {
+  transition: var(--premium-transition) !important;
+}
+
+/* Non-active links slide-right + green tint on hover */
+a.flex.items-center.gap-4:hover:not(.bg-primary) {
+  padding-left: 1.25rem !important; /* Smooth right slide */
+  color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.06) !important;
+}
+
+/* Active links breathe with gradient shadow */
+a.flex.items-center.gap-4.bg-primary {
+  box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.25) !important;
+}
+
+a.flex.items-center.gap-4.bg-primary:hover {
+  background-color: #059669 !important;
+  box-shadow: 0 8px 20px -2px rgba(16, 185, 129, 0.4) !important;
+  padding-left: 1.25rem !important;
+}
+
+/* 5. Action and Trash Buttons (Pure color feedback + micro scaling) */
+button.text-rose-500,
+.text-rose-500 button,
+button.text-rose-500 svg {
+  transition: var(--premium-transition) !important;
+}
+
+button.text-rose-500:hover,
+a.text-rose-500:hover {
+  transform: scale(1.06) !important;
+  background-color: rgba(244, 63, 94, 0.1) !important;
+  color: #f43f5e !important;
+  border-color: rgba(244, 63, 94, 0.15) !important;
+}
+
+/* 6. Inputs subtle focus glow */
+input, 
+select, 
+textarea {
+  transition: var(--premium-transition) !important;
+}
+
+input:focus, 
+select:focus, 
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 // Usa o IP da máquina atual dinamicamente em vez de 'localhost' fixo
 const backendHostname = window.location.hostname;
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || `http://${backendHostname}:3000/api`,
+  baseURL: import.meta.env.VITE_API_URL || `http://${backendHostname}:3333/api`,
 });
 
 // Interceptor para injetar o Token JWT

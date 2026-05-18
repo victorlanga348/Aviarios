@@ -26,6 +26,7 @@ export function useBatches() {
       // "Invalida" o cache para forçar o React Query a buscar a lista atualizada
       queryClient.invalidateQueries({ queryKey: ['batches'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     },
   });
 
@@ -38,7 +39,24 @@ export function useBatches() {
       toast.success('Status do lote atualizado!');
       queryClient.invalidateQueries({ queryKey: ['batches'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     },
+  });
+
+  // Deletar lote
+  const deleteBatchMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/batches/${id}`);
+    },
+    onSuccess: () => {
+      toast.success('Lote deletado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
+    },
+    onError: () => {
+      toast.error('Erro ao deletar lote.');
+    }
   });
 
   return {
@@ -47,6 +65,8 @@ export function useBatches() {
     createBatch: createBatchMutation.mutateAsync,
     isCreating: createBatchMutation.isPending,
     updateBatchStatus: updateBatchStatusMutation.mutateAsync,
-    isUpdatingStatus: updateBatchStatusMutation.isPending
+    isUpdatingStatus: updateBatchStatusMutation.isPending,
+    deleteBatch: deleteBatchMutation.mutateAsync,
+    isDeleting: deleteBatchMutation.isPending
   };
 }

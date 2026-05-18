@@ -1,9 +1,8 @@
 /**
- * Sanitization utility using DOMPurify (isomorphic — works in Node.js).
+ * Sanitization utility without heavy external dependencies.
  * Strips all HTML tags and attributes from user-supplied strings,
- * preventing stored XSS if data is ever rendered via non-React means.
+ * preventing stored XSS by rendering text purely flat.
  */
-import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Removes all HTML tags from a string. Returns an empty string for nullish input.
@@ -11,5 +10,6 @@ import DOMPurify from 'isomorphic-dompurify';
  */
 export function sanitize(input: string | null | undefined): string {
     if (input == null) return '';
-    return DOMPurify.sanitize(input, { ALLOWED_TAGS: [] }).trim();
+    // Strip HTML tags using regex to avoid importing heavy libraries like JSDOM / isomorphic-dompurify
+    return input.replace(/<[^>]*>/g, '').trim();
 }

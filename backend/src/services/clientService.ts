@@ -40,11 +40,27 @@ async function listClients(userId: string) {
 
 async function deleteClient(userId: string, clientId: string) {
     const client = await prisma.customer.findFirst({
-        where: { id: clientId, userId }
+        where: { id: clientId, userId },
+        include: {
+            sales: {
+                where: {
+                    status: { in: ['PENDENTE', 'PARCIALMENTE_PAGO'] }
+                },
+                select: {
+                    balance: true
+                }
+            }
+        }
     });
 
     if (!client) {
         throw new Error("Cliente não encontrado ou não autorizado");
+    }
+
+    const totalDebt = client.sales.reduce((acc, sale) => acc + (sale.balance || 0), 0);
+    
+    if (totalDebt > 0) {
+        throw new Error("Não é possível excluir um cliente com saldo devedor ativo. Registre os pagamentos pendentes antes de prosseguir.");
     }
 
     await prisma.$transaction(async (tx) => {

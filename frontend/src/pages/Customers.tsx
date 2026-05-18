@@ -4,6 +4,7 @@ import { CustomerDetailsModal } from '../components/Customers/CustomerDetailsMod
 import { DeleteConfirmModal } from '../components/Finance/DeleteConfirmModal';
 import { Users, Phone, AlertCircle, CheckCircle2, Search, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 export function Customers() {
   const { customers, isLoading, deleteCustomer, isDeleting } = useCustomers();
@@ -90,10 +91,14 @@ export function Customers() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setCustomerToDelete(customer);
+                        if (customer.totalDebt > 0) {
+                          toast.error('Não é possível excluir um cliente com saldo devedor ativo!');
+                        } else {
+                          setCustomerToDelete(customer);
+                        }
                       }}
                       className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                      title="Excluir Cliente"
+                      title={customer.totalDebt > 0 ? "Exclusão bloqueada (possui dívidas)" : "Excluir Cliente"}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -136,13 +141,8 @@ export function Customers() {
         }}
         isLoading={isDeleting}
         title="Excluir Cliente?"
-        description={
-          customerToDelete && customerToDelete.totalDebt > 0
-            ? "ATENÇÃO: Este cliente possui dívidas ativas de fiado! Ao excluí-lo, todas as vendas pendentes e históricos de pagamento associados serão eliminados do sistema permanentemente."
-            : "Você está prestes a excluir este cliente e todo o histórico de compras associado de forma permanente."
-        }
+        description="Você está prestes a excluir este cliente e todo o histórico de compras associado de forma permanente."
         itemName={customerToDelete?.name}
-        itemValue={customerToDelete && customerToDelete.totalDebt > 0 ? `Dívida: MZN ${customerToDelete.totalDebt.toLocaleString()}` : undefined}
       />
     </div>
   );

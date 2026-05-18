@@ -16,15 +16,24 @@ export function DeleteBatchModal({ isOpen, onClose, onConfirm, isLoading, batchN
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ 
+            opacity: 0,
+            transition: { duration: 0.18, ease: 'easeInOut' }
+          }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
           className="w-full fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
           onClick={onClose}
         >
           <motion.div 
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            initial={{ scale: 0.95, opacity: 0, y: 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            exit={{ 
+              scale: 0.95, 
+              opacity: 0, 
+              y: 15,
+              transition: { duration: 0.15, ease: 'easeInOut' }
+            }}
+            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className="bg-card border border-border p-6 md:p-8 rounded-3xl w-full max-w-md shadow-2xl my-auto overflow-hidden relative"
             onClick={(e) => e.stopPropagation()}
           >

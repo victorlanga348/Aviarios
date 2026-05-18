@@ -109,8 +109,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             className={`
-              fixed md:sticky top-0 left-0 z-50 w-72 h-[100dvh] bg-card md:bg-transparent
-              border-r border-border p-6 flex flex-col gap-6 md:gap-8 transition-colors duration-300 overflow-y-auto md:overflow-y-visible
+              fixed top-0 left-0 z-50 w-72 h-[100dvh] bg-card
+              border-r border-border p-6 flex flex-col gap-6 md:gap-8 transition-colors duration-300 overflow-y-auto
               ${!isSidebarOpen && 'hidden md:flex'}
             `}
           >
@@ -161,44 +161,46 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 p-4 pt-24 md:pt-10 md:p-10 max-w-7xl mx-auto w-full overflow-x-hidden flex flex-col">
-        {/* Seletor de Mês Global */}
-        {(location.pathname === '/' || location.pathname === '/reports') && (
-          <div className="flex justify-end mb-6 w-full z-10">
-            <div className="flex items-center gap-2 bg-card border border-border p-1.5 rounded-2xl shadow-sm">
-              <button 
-                onClick={() => changeMonth(-1)} 
-                className="p-2 hover:bg-secondary rounded-xl transition-colors text-muted hover:text-foreground"
-                title="Mês Anterior"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <span className="font-bold text-sm min-w-[140px] text-center capitalize text-foreground">
-                {formattedDate}
-              </span>
-              <button 
-                onClick={() => changeMonth(1)} 
-                className="p-2 hover:bg-secondary rounded-xl transition-colors text-muted hover:text-foreground"
-                title="Próximo Mês"
-              >
-                <ChevronRight size={20} />
-              </button>
+      <div className="flex-1 md:pl-72 flex flex-col min-w-0">
+        <main className="flex-grow p-4 pt-24 md:pt-10 md:p-10 max-w-7xl mx-auto w-full overflow-x-hidden flex flex-col">
+          {/* Seletor de Mês Global */}
+          {(location.pathname === '/' || location.pathname === '/reports') && (
+            <div className="flex justify-end mb-6 w-full z-10">
+              <div className="flex items-center gap-2 bg-card border border-border p-1.5 rounded-2xl shadow-sm">
+                <button 
+                  onClick={() => changeMonth(-1)} 
+                  className="p-2 hover:bg-secondary rounded-xl transition-colors text-muted hover:text-foreground"
+                  title="Mês Anterior"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <span className="font-bold text-sm min-w-[140px] text-center capitalize text-foreground">
+                  {formattedDate}
+                </span>
+                <button 
+                  onClick={() => changeMonth(1)} 
+                  className="p-2 hover:bg-secondary rounded-xl transition-colors text-muted hover:text-foreground"
+                  title="Próximo Mês"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: direction }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -direction }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: direction }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -direction }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
     </div>
   );
 }

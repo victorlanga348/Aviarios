@@ -110,7 +110,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             exit={{ x: -280 }}
             className={`
               fixed md:sticky top-0 left-0 z-50 w-72 h-[100dvh] bg-card md:bg-transparent
-              border-r border-border p-6 flex flex-col gap-6 md:gap-8 transition-colors duration-300 overflow-y-auto
+              border-r border-border p-6 flex flex-col gap-6 md:gap-8 transition-colors duration-300 overflow-y-auto md:overflow-y-visible
               ${!isSidebarOpen && 'hidden md:flex'}
             `}
           >

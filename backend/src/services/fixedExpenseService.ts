@@ -1,9 +1,10 @@
 import prisma from "../config/db.js";
+import { sanitize } from "../utils/sanitize.js";
 
 async function createFixedExpense(userId: string, description: string, amount: number, date?: Date) {
     const expense = await prisma.fixedExpense.create({
         data: {
-            description,
+            description: sanitize(description),
             amount,
             date: date || new Date(),
             userId

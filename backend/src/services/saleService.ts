@@ -1,5 +1,6 @@
 import prisma from "../config/db.js";
 import { BatchStatus } from "@prisma/client";
+import { sanitize } from "../utils/sanitize.js";
 
 async function registerSale(userId: string, batchId: string, quantity: number, customerIdentifier: string, unitPrice?: number, amountPaid: number = 0, customerPhone?: string) {
     return await prisma.$transaction(async (tx) => {
@@ -19,7 +20,7 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
                 where: { id: customerIdentifier, userId } 
             });
         } else {
-            const normalizedName = customerIdentifier.trim().toLowerCase();
+            const normalizedName = sanitize(customerIdentifier).toLowerCase();
             customer = await tx.customer.findFirst({ 
                 where: { name: normalizedName, userId } 
             });
@@ -28,7 +29,7 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
                 customer = await tx.customer.create({
                     data: { 
                         name: normalizedName,
-                        phone: customerPhone ?? null,
+                        phone: customerPhone ? sanitize(customerPhone) : null,
                         userId
                     }
                 });

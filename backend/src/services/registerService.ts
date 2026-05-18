@@ -7,7 +7,7 @@ async function registerUser(name: string, email: string, password: string) {
     });
 
     if (existingUser) {
-        throw new Error("Email já cadastrado!");
+        throw new Error("Este email já existe. Clique em 'Fazer login' para entrar!");
     }
 
     const salt = await bcrypt.genSalt(10);

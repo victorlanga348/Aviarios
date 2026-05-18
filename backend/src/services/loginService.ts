@@ -8,7 +8,7 @@ async function login(email: string, password: string) {
     });
 
     if (!user) {
-        throw new Error("Usuário não encontrado!");
+        throw new Error("Este email não está cadastrado. Clique em 'Cadastre-se agora' para se cadastrar!");
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

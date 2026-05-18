@@ -4,12 +4,15 @@ import { useBatches } from '../hooks/useBatches';
 import { LossModal } from '../components/Finance/LossModal';
 import { FixedExpenseModal } from '../components/Finance/FixedExpenseModal';
 import { BatchExpenseModal } from '../components/Finance/BatchExpenseModal';
+import { DeleteConfirmModal } from '../components/Finance/DeleteConfirmModal';
 import { Zap, Beef, Trash2, Calendar } from 'lucide-react';
 
 export function Finance() {
   const [isLossModalOpen, setIsLossModalOpen] = useState(false);
   const [isFixedExpenseModalOpen, setIsFixedExpenseModalOpen] = useState(false);
   const [isBatchExpenseModalOpen, setIsBatchExpenseModalOpen] = useState(false);
+  
+  const [expenseToDelete, setExpenseToDelete] = useState<{ id: string; description: string; amount: number } | null>(null);
 
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -148,6 +151,7 @@ export function Finance() {
             </div>
           </div>
         )}
+
         {/* Tabela ou estado vazio */}
         {isLoadingExpenses ? (
           <div className="py-16 text-center text-muted font-bold text-sm">Carregando lançamentos...</div>
@@ -171,11 +175,7 @@ export function Finance() {
                     </p>
                   </div>
                   <button
-                    onClick={async () => {
-                      if (confirm(`Deseja realmente remover a conta "${expense.description}" de ${new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}?`)) {
-                        await removeFixedExpense(expense.id);
-                      }
-                    }}
+                    onClick={() => setExpenseToDelete({ id: expense.id, description: expense.description, amount: expense.amount })}
                     className="p-3 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                     title="Remover Despesa"
                   >
@@ -208,11 +208,7 @@ export function Finance() {
                       </td>
                       <td className="py-4 text-center">
                         <button
-                          onClick={async () => {
-                            if (confirm(`Deseja realmente remover a conta "${expense.description}" de ${new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}?`)) {
-                              await removeFixedExpense(expense.id);
-                            }
-                          }}
+                          onClick={() => setExpenseToDelete({ id: expense.id, description: expense.description, amount: expense.amount })}
                           className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                           title="Remover Despesa"
                         >
@@ -259,7 +255,23 @@ export function Finance() {
           setIsBatchExpenseModalOpen(false);
         }}
       />
+
+      <DeleteConfirmModal
+        isOpen={expenseToDelete !== null}
+        onClose={() => setExpenseToDelete(null)}
+        onConfirm={async () => {
+          if (expenseToDelete) {
+            await removeFixedExpense(expenseToDelete.id);
+          }
+        }}
+        isLoading={isProcessing}
+        title="Excluir Conta Mensal?"
+        description="Você está prestes a excluir esta despesa operacional fixa de forma permanente."
+        itemName={expenseToDelete?.description}
+        itemValue={expenseToDelete ? new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expenseToDelete.amount) : undefined}
+      />
     </div>
   );
 }
+
 

@@ -11,6 +11,7 @@ export function useFinance(month?: number, year?: number) {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['finance'] });
     queryClient.invalidateQueries({ queryKey: ['batch-expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
   };
 
   const createLoss = useMutation({

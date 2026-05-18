@@ -36,6 +36,7 @@ export function useSales() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['customers-with-debt'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     },
   });
 
@@ -51,6 +52,7 @@ export function useSales() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['customers-with-debt'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     },
   });
 

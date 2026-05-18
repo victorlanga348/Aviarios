@@ -43,6 +43,7 @@ export function useCustomers() {
       queryClient.invalidateQueries({ queryKey: ['client-sales'] });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     }
   });
 
@@ -57,6 +58,7 @@ export function useCustomers() {
       queryClient.invalidateQueries({ queryKey: ['client-sales'] });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     }
   });
 

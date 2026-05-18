@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useSales } from '../hooks/useSales';
 import { useBatches } from '../hooks/useBatches';
 import { CreateSaleModal } from '../components/Sales/CreateSaleModal';
-import { ShoppingCart, Clock } from 'lucide-react';
+import { DeleteConfirmModal } from '../components/Finance/DeleteConfirmModal';
+import { ShoppingCart, Clock, Trash2 } from 'lucide-react';
 import type { Sale } from '../@types';
 
 export function Sales() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { customers, createSale, recentSales, isLoadingSales } = useSales();
+  const [saleToRevert, setSaleToRevert] = useState<Sale | null>(null);
+  const { customers, createSale, revertSale, recentSales, isLoadingSales, isReverting } = useSales();
   const { batches } = useBatches();
 
   return (
@@ -59,9 +61,18 @@ export function Sales() {
                       <p className="text-[10px] text-muted uppercase font-bold tracking-wider">Qtd</p>
                       <p className="text-sm font-bold text-foreground">{sale.quantity} aves</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-muted uppercase font-bold tracking-wider">Total</p>
-                      <p className="text-sm font-black text-primary">MZN {sale.totalValue.toLocaleString()}</p>
+                    <div className="text-right flex items-center gap-3">
+                      <div>
+                        <p className="text-[10px] text-muted uppercase font-bold tracking-wider">Total</p>
+                        <p className="text-sm font-black text-primary">MZN {sale.totalValue.toLocaleString()}</p>
+                      </div>
+                      <button
+                        onClick={() => setSaleToRevert(sale)}
+                        className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                        title="Reverter Venda"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -79,6 +90,7 @@ export function Sales() {
                     <th className="p-4 text-foreground">Qtd</th>
                     <th className="p-4 text-foreground">Total</th>
                     <th className="p-4 text-foreground">Status</th>
+                    <th className="p-4 text-foreground text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -103,6 +115,15 @@ export function Sales() {
                           </span>
                         )}
                       </td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => setSaleToRevert(sale)}
+                          className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                          title="Reverter Venda"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -121,6 +142,22 @@ export function Sales() {
           await createSale(data);
           setIsModalOpen(false);
         }}
+      />
+
+      <DeleteConfirmModal
+        isOpen={saleToRevert !== null}
+        onClose={() => setSaleToRevert(null)}
+        onConfirm={async () => {
+          if (saleToRevert) {
+            await revertSale(saleToRevert.id);
+            setSaleToRevert(null);
+          }
+        }}
+        isLoading={isReverting}
+        title="Reverter Venda?"
+        description="Esta ação irá cancelar a venda, excluir os pagamentos associados e RESTAURAR a quantidade exata de aves de volta ao estoque do lote original."
+        itemName={saleToRevert ? `Venda para ${saleToRevert.customerName || 'Cliente'}` : undefined}
+        itemValue={saleToRevert ? `MZN ${saleToRevert.totalValue.toLocaleString()}` : undefined}
       />
     </div>
   );

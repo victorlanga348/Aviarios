@@ -39,12 +39,29 @@ export function useSales() {
     },
   });
 
+  // Deletar (Reverter) venda
+  const deleteSaleMutation = useMutation({
+    mutationFn: async (saleId: string) => {
+      await api.delete(`/sales/${saleId}`);
+    },
+    onSuccess: () => {
+      toast.success('Venda revertida e estoque restaurado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customers-with-debt'] });
+    },
+  });
+
   return {
     customers: customersQuery.data ?? [],
     recentSales: salesQuery.data ?? [],
     isLoadingSales: salesQuery.isLoading,
     isLoadingCustomers: customersQuery.isLoading,
     createSale: createSaleMutation.mutateAsync,
-    isCreating: createSaleMutation.isPending
+    revertSale: deleteSaleMutation.mutateAsync,
+    isCreating: createSaleMutation.isPending,
+    isReverting: deleteSaleMutation.isPending
   };
 }

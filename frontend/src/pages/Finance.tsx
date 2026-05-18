@@ -148,8 +148,7 @@ export function Finance() {
             </div>
           </div>
         )}
-
-        {/* Tabela de Lançamentos */}
+        {/* Tabela ou estado vazio */}
         {isLoadingExpenses ? (
           <div className="py-16 text-center text-muted font-bold text-sm">Carregando lançamentos...</div>
         ) : !fixedExpensesData || fixedExpensesData.expenses.length === 0 ? (
@@ -157,44 +156,75 @@ export function Finance() {
             <p className="text-muted text-sm font-bold">Nenhuma conta registrada para {new Date(2000, selectedMonth - 1).toLocaleString('pt-PT', { month: 'long' })} de {selectedYear}.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl">
-            <table className="w-full text-left border-collapse min-w-[500px]">
-              <thead>
-                <tr className="border-b border-border text-muted text-[9px] uppercase font-black tracking-widest">
-                  <th className="pb-4">Descrição</th>
-                  <th className="pb-4">Data de Lançamento</th>
-                  <th className="pb-4 text-right">Valor</th>
-                  <th className="pb-4 text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {fixedExpensesData.expenses.map((expense) => (
-                  <tr key={expense.id} className="hover:bg-secondary/20 transition-colors group">
-                    <td className="py-4 font-bold text-foreground text-sm">{expense.description}</td>
-                    <td className="py-4 text-muted text-xs">
+          <>
+            {/* Visualização de Cards para telas pequenas (Mobile) */}
+            <div className="md:hidden space-y-4">
+              {fixedExpensesData.expenses.map((expense) => (
+                <div key={expense.id} className="bg-secondary/20 p-5 rounded-2xl border border-border flex justify-between items-center relative group">
+                  <div className="space-y-1">
+                    <p className="font-bold text-foreground text-sm leading-tight">{expense.description}</p>
+                    <p className="text-muted text-[10px] uppercase font-black tracking-wider">
                       {new Date(expense.date).toLocaleDateString('pt-PT')}
-                    </td>
-                    <td className="py-4 font-black text-foreground text-sm text-right">
+                    </p>
+                    <p className="font-black text-primary text-base pt-1">
                       {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
-                    </td>
-                    <td className="py-4 text-center">
-                      <button
-                        onClick={async () => {
-                          if (confirm(`Deseja realmente remover a conta "${expense.description}" de ${new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}?`)) {
-                            await removeFixedExpense(expense.id);
-                          }
-                        }}
-                        className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                        title="Remover Despesa"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Deseja realmente remover a conta "${expense.description}" de ${new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}?`)) {
+                        await removeFixedExpense(expense.id);
+                      }
+                    }}
+                    className="p-3 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                    title="Remover Despesa"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Tabela Tradicional para Telas Maiores (Desktop) */}
+            <div className="hidden md:block overflow-x-auto rounded-xl">
+              <table className="w-full text-left border-collapse min-w-[500px]">
+                <thead>
+                  <tr className="border-b border-border text-muted text-[9px] uppercase font-black tracking-widest">
+                    <th className="pb-4">Descrição</th>
+                    <th className="pb-4">Data de Lançamento</th>
+                    <th className="pb-4 text-right">Valor</th>
+                    <th className="pb-4 text-center">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {fixedExpensesData.expenses.map((expense) => (
+                    <tr key={expense.id} className="hover:bg-secondary/20 transition-colors group">
+                      <td className="py-4 font-bold text-foreground text-sm">{expense.description}</td>
+                      <td className="py-4 text-muted text-xs">
+                        {new Date(expense.date).toLocaleDateString('pt-PT')}
+                      </td>
+                      <td className="py-4 font-black text-foreground text-sm text-right">
+                        {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                      </td>
+                      <td className="py-4 text-center">
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Deseja realmente remover a conta "${expense.description}" de ${new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}?`)) {
+                              await removeFixedExpense(expense.id);
+                            }
+                          }}
+                          className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                          title="Remover Despesa"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

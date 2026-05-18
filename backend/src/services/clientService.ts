@@ -1,9 +1,31 @@
 import prisma from "../config/db.js";
 
 async function createClient(userId: string, name: string, phone?: string) {
+    const normalizeName = (str: string) => {
+        return str
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .trim();
+    };
+
+    const normalizedInput = normalizeName(name);
+
+    const existingCustomers = await prisma.customer.findMany({
+        where: { userId },
+        select: { name: true }
+    });
+
+    const isDuplicate = existingCustomers.some(c => normalizeName(c.name) === normalizedInput);
+
+    if (isDuplicate) {
+        throw new Error(`Já existe um cliente cadastrado com este nome ("${name}" é semelhante a um registro existente).`);
+    }
+
     const client = await prisma.customer.create({
         data: {
-            name,
+            name: name.trim(),
             phone: phone ?? null,
             userId
         }

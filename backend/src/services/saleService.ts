@@ -11,7 +11,7 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
         if (!batch) throw new Error('Lote não encontrado ou não pertence a este usuário');
         if (batch.status === BatchStatus.CLOSED) throw new Error('O lote está fechado');
 
-        // Lógica de Cliente: Tenta buscar por ID (UUID) ou Nome (Lowercase)
+        // Lógica de Cliente: Tenta buscar por ID (UUID) ou Nome (Accent-insensitive e Case-insensitive)
         let customer;
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(customerIdentifier);
 
@@ -20,15 +20,26 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
                 where: { id: customerIdentifier, userId } 
             });
         } else {
-            const normalizedName = sanitize(customerIdentifier).toLowerCase();
-            customer = await tx.customer.findFirst({ 
-                where: { name: normalizedName, userId } 
+            const allCustomers = await tx.customer.findMany({
+                where: { userId }
             });
+
+            const normalizeName = (str: string) => {
+                return str
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase()
+                    .replace(/\s+/g, " ")
+                    .trim();
+            };
+
+            const inputNormalized = normalizeName(customerIdentifier);
+            customer = allCustomers.find(c => normalizeName(c.name) === inputNormalized);
             
             if (!customer) {
                 customer = await tx.customer.create({
                     data: { 
-                        name: normalizedName,
+                        name: sanitize(customerIdentifier).trim(),
                         phone: customerPhone ? sanitize(customerPhone) : null,
                         userId
                     }

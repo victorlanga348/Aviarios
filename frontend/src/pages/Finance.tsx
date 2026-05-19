@@ -162,18 +162,18 @@ export function Finance() {
       {activeTab === 'FIXED' ? (
         /* Lista de Contas Mensais Detalhadas */
         <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-            <div>
+          <div className="flex flex-col md:grid md:grid-cols-3 md:items-center gap-6 mb-8">
+            <div className="md:col-span-1">
               <h3 className="text-xl font-black text-foreground flex items-center gap-2">
                 <Calendar className="text-primary" size={20} /> Detalhamento de Contas Mensais
               </h3>
               <p className="text-muted text-xs mt-1">Acompanhe e gerencie todos os custos fixos mensais do seu negócio.</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="md:col-span-1 flex justify-center items-center gap-3">
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all"
+                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto"
               >
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -184,7 +184,7 @@ export function Finance() {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all"
+                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto"
               >
                 {Array.from({ length: 5 }, (_, i) => {
                   const yearOption = new Date().getFullYear() - 2 + i;
@@ -196,6 +196,7 @@ export function Finance() {
                 })}
               </select>
             </div>
+            <div className="hidden md:block md:col-span-1"></div>
           </div>
 
           {/* Resumo Rápido */}
@@ -310,19 +311,19 @@ export function Finance() {
       ) : (
         /* Lista de Insumos (Ração e Vacina) de Lotes Detalhadas */
         <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-            <div>
+          <div className="flex flex-col md:grid md:grid-cols-3 md:items-center gap-6 mb-8">
+            <div className="md:col-span-1">
               <h3 className="text-xl font-black text-foreground flex items-center gap-2">
                 <ClipboardList className="text-primary" size={20} /> Detalhamento de Insumos do Lote
               </h3>
               <p className="text-muted text-xs mt-1">Veja exatamente quanto e onde investiu em ração e medicamentos para cada lote de aves.</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="md:col-span-1 flex justify-center items-center gap-3">
               <span className="text-muted text-[10px] uppercase font-black tracking-wider hidden sm:inline">Lote:</span>
               <select
                 value={selectedBatchId}
                 onChange={(e) => setSelectedBatchId(e.target.value)}
-                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all"
+                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto"
               >
                 {batches.length === 0 ? (
                   <option value="">Nenhum Lote Encontrado</option>
@@ -335,6 +336,7 @@ export function Finance() {
                 )}
               </select>
             </div>
+            <div className="hidden md:block md:col-span-1"></div>
           </div>
 
           {/* Resumo Rápido de Custos de Insumo */}

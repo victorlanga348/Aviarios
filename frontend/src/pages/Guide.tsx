@@ -7,11 +7,59 @@ import {
   Users, 
   AlertTriangle, 
   TrendingUp,
-  Lightbulb
+  Lightbulb,
+  Bird,
+  Wallet,
+  Receipt
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const guideSections = [
+  {
+    id: 'dashboard',
+    title: '0. Entendendo os 4 Cards do Dashboard',
+    icon: <TrendingUp className="text-primary" size={24} />,
+    color: 'bg-primary/10 border-primary/20',
+    content: (
+      <div className="space-y-4 text-sm text-muted-foreground">
+        <p>Ao abrir o sistema, a primeira coisa que vê são 4 indicadores financeiros no topo. Veja o que cada um representa de forma detalhada:</p>
+        
+        <div className="space-y-3">
+          <div className="flex gap-3 items-start p-3 bg-secondary/20 rounded-2xl border border-border">
+            <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl mt-0.5"><Bird size={18} /></div>
+            <div>
+              <p className="font-bold text-foreground">Aves Vivas</p>
+              <p className="text-xs mt-0.5">Mostra a quantidade exata de frangos que você tem vivos no aviário no momento. Esse número diminui automaticamente quando você realiza uma venda ou registra uma morte/perda.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 items-start p-3 bg-secondary/20 rounded-2xl border border-border">
+            <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl mt-0.5"><TrendingUp size={18} /></div>
+            <div>
+              <p className="font-bold text-foreground">Lucro Real</p>
+              <p className="text-xs mt-0.5">O dinheiro realmente líquido (limpo) gerado pelas suas operações no mês selecionado. O sistema pega no faturamento total e desconta tudo: o custo inicial dos frangos vendidos, o transporte desses frangos, os insumos consumidos (ração/vacinas) e as despesas operacionais fixas.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 items-start p-3 bg-secondary/20 rounded-2xl border border-border">
+            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-xl mt-0.5"><Wallet size={18} /></div>
+            <div>
+              <p className="font-bold text-foreground">Contas a Receber (Fiados)</p>
+              <p className="text-xs mt-0.5">Representa as dívidas ativas de clientes. Sempre que faz uma venda a fiado (onde o valor pago é menor que o valor total), o valor restante é somado aqui. Esse dinheiro pertence a você, mas ainda não está no seu bolso.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 items-start p-3 bg-secondary/20 rounded-2xl border border-border">
+            <div className="p-2 bg-rose-500/10 text-rose-500 rounded-xl mt-0.5"><Receipt size={18} /></div>
+            <div>
+              <p className="font-bold text-foreground">Saldo de Caixa</p>
+              <p className="text-xs mt-0.5">Representa o montante de dinheiro vivo que você realmente tem em mãos agora. É a soma de todas as entradas de vendas (apenas o que já foi efetivamente pago) menos as saídas de insumos e contas mensais.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  },
   {
     id: 'lotes',
     title: '1. Como funcionam os Lotes?',

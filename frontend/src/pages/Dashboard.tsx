@@ -135,7 +135,7 @@ export function Dashboard() {
                 <tr>
                   <th className="p-4">Cliente</th>
                   <th className="p-4">Lote</th>
-                  <th className="p-4">Qtd</th>
+                  <th className="p-4">Quantidade</th>
                   <th className="p-4 text-right">Valor</th>
                 </tr>
               </thead>

@@ -121,7 +121,8 @@ export function Admin() {
             Gestão de Usuários
           </h2>
         </div>
-        <div className="overflow-x-auto scrollbar-hide pb-2">
+        {/* DESKTOP TABLE */}
+        <div className="hidden md:block overflow-x-auto pb-2">
           <table className="w-full text-left border-collapse whitespace-nowrap min-w-max">
             <thead>
               <tr className="bg-secondary/50 text-muted text-sm font-semibold">
@@ -173,6 +174,57 @@ export function Admin() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* MOBILE CARDS */}
+        <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+          {usersLoading ? (
+            <div className="p-8 text-center text-muted">Carregando usuários...</div>
+          ) : users?.length === 0 ? (
+            <div className="p-8 text-center text-muted">Nenhum usuário encontrado.</div>
+          ) : (
+            users?.map(u => (
+              <div key={u.id} className="bg-secondary/20 border border-border rounded-2xl p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-bold text-foreground text-sm">{u.name}</p>
+                    <p className="text-xs text-muted-foreground">{u.email}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
+                    u.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted'
+                  }`}>
+                    {u.role}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 py-3 border-y border-border/50">
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Frangos</p>
+                    <p className="font-black text-emerald-500 text-lg">{u.totalChickens || 0}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Lotes</p>
+                    <p className="font-bold text-foreground text-lg">{u._count.batches}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Vendas</p>
+                    <p className="font-bold text-foreground text-lg">{u._count.sales}</p>
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    onClick={() => handleRoleToggle(u.id, u.role)}
+                    disabled={updateRoleMutation.isPending || u.id === user?.id}
+                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-secondary hover:bg-primary hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <Shield size={16} />
+                    {u.role === 'ADMIN' ? 'Rebaixar para Usuário' : 'Promover a Administrador'}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

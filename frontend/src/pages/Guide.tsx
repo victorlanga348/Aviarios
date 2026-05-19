@@ -147,7 +147,7 @@ const guideSections = [
 ];
 
 export function Guide() {
-  const [openSection, setOpenSection] = useState<string | null>('lotes');
+  const [openSection, setOpenSection] = useState<string | null>('dashboard');
 
   const toggleSection = (id: string) => {
     setOpenSection(openSection === id ? null : id);

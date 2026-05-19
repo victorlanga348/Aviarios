@@ -45,34 +45,33 @@ export function Landing() {
       {/* HEADER / NAVIGATION (FIXED STICKY WITH GLASSMORPHISM & THEME TOGGLE) */}
       <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-b border-border/40 z-50 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <Bird size={24} className="text-black" />
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+              <Bird size={20} className="text-black" />
             </div>
-            <span className="text-lg sm:text-xl font-black italic tracking-tighter text-primary">AVIÁRIO PRO</span>
+            <span className="text-sm sm:text-xl font-black italic tracking-tighter text-primary truncate max-w-[100px] min-[360px]:max-w-none">AVIÁRIO PRO</span>
           </div>
           
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Seletor de Tema Claro / Escuro com clique responsivo e sem hover residual no celular */}
+          <div className="flex items-center gap-1 sm:gap-4">
             <button 
               onClick={toggleTheme} 
-              className="p-2 text-muted sm:hover:text-foreground transition-colors mr-1 sm:mr-2 active:scale-95"
+              className="p-1.5 sm:p-2 text-muted sm:hover:text-foreground transition-colors mr-0.5 sm:mr-2 active:scale-95"
               aria-label="Mudar tema"
             >
-              {theme === 'dark' ? <Sun size={20} className="text-primary" /> : <Moon size={20} />}
+              {theme === 'dark' ? <Sun size={18} className="text-primary" /> : <Moon size={18} />}
             </button>
             
             <button 
               onClick={() => navigate('/login')}
-              className="text-xs sm:text-sm font-bold text-muted sm:hover:text-foreground transition-colors px-2.5 py-2 active:scale-95"
+              className="text-[10px] sm:text-sm font-bold text-muted sm:hover:text-foreground transition-colors px-1.5 py-2 active:scale-95"
             >
-              Já tenho conta
+              Entrar
             </button>
             <button 
               onClick={() => navigate('/register')}
-              className="bg-primary text-black font-black text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:hover:bg-emerald-500 transition shadow-lg shadow-primary/10 sm:hover:shadow-primary/20 active:scale-95 active:bg-emerald-600"
+              className="bg-primary text-black font-black text-[10px] sm:text-sm px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl sm:hover:bg-emerald-500 transition shadow-lg shadow-primary/10 sm:hover:shadow-primary/20 active:scale-95 active:bg-emerald-600"
             >
-              Começar Grátis
+              Criar Conta
             </button>
           </div>
         </div>

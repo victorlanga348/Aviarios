@@ -224,3 +224,12 @@ textarea:focus {
     font-size: 16px !important;
   }
 }
+
+/* Utility to hide scrollbars but keep scrolling enabled */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

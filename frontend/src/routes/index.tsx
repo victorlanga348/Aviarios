@@ -11,6 +11,7 @@ import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { Landing } from '../pages/Landing';
 import { Admin } from '../pages/Admin';
+import { Guide } from '../pages/Guide';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -80,6 +81,7 @@ export function AppRoutes() {
           <Route path="/customers" element={<UserRoute><MainLayout><Customers /></MainLayout></UserRoute>} />
           <Route path="/finance" element={<UserRoute><MainLayout><Finance /></MainLayout></UserRoute>} />
           <Route path="/reports" element={<UserRoute><MainLayout><Reports /></MainLayout></UserRoute>} />
+          <Route path="/guide" element={<UserRoute><MainLayout><Guide /></MainLayout></UserRoute>} />
           
           <Route path="/admin" element={<AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>} />
           

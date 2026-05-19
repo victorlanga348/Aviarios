@@ -16,7 +16,8 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -56,6 +57,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     { path: '/customers', label: 'Clientes', icon: Users },
     { path: '/finance', label: 'Financeiro', icon: Zap },
     { path: '/reports', label: 'Relatórios', icon: History },
+    { path: '/guide', label: 'Manual', icon: BookOpen },
     ...(user?.role === 'ADMIN' ? [{ path: '/admin', label: 'Painel Admin', icon: ShieldAlert }] : []),
   ];
 

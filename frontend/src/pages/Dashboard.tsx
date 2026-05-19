@@ -62,7 +62,12 @@ export function Dashboard() {
       transition={{ duration: 0.35, ease: 'easeOut' }}
       className="space-y-4 sm:space-y-6"
     >
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-2">
+      <header 
+        id="tour-header" 
+        className={`flex flex-col md:flex-row md:items-end justify-between gap-2 p-2 rounded-2xl transition-all duration-300 ${
+          showOnboarding && currentSlide === 1 ? 'relative z-[60] bg-secondary/60 ring-4 ring-primary ring-offset-4 ring-offset-background shadow-2xl scale-[1.01]' : ''
+        }`}
+      >
         <div>
           <p className="text-primary font-bold tracking-widest uppercase text-[8px] sm:text-[10px] mb-0.5 sm:mb-1">Painel de Controle</p>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
@@ -80,13 +85,20 @@ export function Dashboard() {
           color="blue"
           description="Aves que ainda estão no aviário hoje."
         />
-        <MetricCard 
-          title="Lucro Real" 
-          value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.realProfit || 0)} 
-          icon={<TrendingUp size={24} />} 
-          color="green"
-          description="O dinheiro que sobrou limpo após pagar as despesas."
-        />
+        <div 
+          id="tour-lucro-card" 
+          className={`rounded-[2rem] transition-all duration-300 ${
+            showOnboarding && currentSlide === 2 ? 'relative z-[60] ring-4 ring-primary ring-offset-4 ring-offset-background shadow-2xl scale-[1.03]' : ''
+          }`}
+        >
+          <MetricCard 
+            title="Lucro Real" 
+            value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.realProfit || 0)} 
+            icon={<TrendingUp size={24} />} 
+            color="green"
+            description="O dinheiro que sobrou limpo após pagar as despesas."
+          />
+        </div>
         <MetricCard 
           title="Contas a Receber" 
           value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.totalToReceive || 0)} 
@@ -105,7 +117,12 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Vendas Recentes */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl">
+        <div 
+          id="tour-vendas-card" 
+          className={`lg:col-span-2 bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl transition-all duration-300 ${
+            showOnboarding && currentSlide === 3 ? 'relative z-[60] ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.01]' : ''
+          }`}
+        >
           <div className="p-6 border-b border-border flex justify-between items-center bg-secondary/30">
             <h3 className="font-bold flex items-center gap-2 text-foreground">
               <ShoppingCart size={18} className="text-primary" /> Vendas Recentes
@@ -148,7 +165,12 @@ export function Dashboard() {
         </div>
 
         {/* Lotes Ativos */}
-        <div className="bg-card border border-border rounded-[2rem] p-6 shadow-2xl relative overflow-hidden">
+        <div 
+          id="tour-lotes-card" 
+          className={`bg-card border border-border rounded-[2rem] p-6 shadow-2xl relative overflow-hidden transition-all duration-300 ${
+            showOnboarding && currentSlide === 4 ? 'relative z-[60] ring-4 ring-primary ring-offset-4 ring-offset-background scale-[1.02]' : ''
+          }`}
+        >
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-16 -mt-16"></div>
           <h3 className="font-bold flex items-center gap-2 mb-6 relative z-10 text-foreground">
             <Package size={18} className="text-primary" /> Estoque de Lotes
@@ -235,7 +257,10 @@ export function Dashboard() {
                       Bem-vindo ao <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">Aviário Pro</span>! 🚀
                     </h2>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Estamos entusiasmados em ajudar você a gerir o seu negócio. Preparamos este guia rápido de 3 passos simples para você dominar as ferramentas mais essenciais do site imediatamente!
+                      Estamos muito entusiasmados em ajudar você! Preparamos um <strong>Tour Interativo de 1 minuto</strong> para mostrar exatamente onde fica cada recurso no seu ecrã.
+                    </p>
+                    <p className="text-muted-foreground text-xs italic">
+                      À medida que avançarmos, repare que o elemento correspondente vai ficar iluminado e destacado no fundo!
                     </p>
                   </motion.div>
                 )}
@@ -250,15 +275,15 @@ export function Dashboard() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
-                        <Package size={20} />
+                        <Sparkles size={20} />
                       </div>
-                      <h3 className="text-xl font-bold text-foreground">1. Abra o seu Primeiro Lote</h3>
+                      <h3 className="text-xl font-bold text-foreground">Painel de Boas-Vindas</h3>
                     </div>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Vá à aba <strong className="text-foreground">Lotes</strong> e adicione o seu primeiro lote de frangos. Insira a quantidade inicial, o custo que pagou por cada ave e o frete. 
+                      Aqui no topo, o sistema mostra o seu nome e a data selecionada. É onde você se localiza no tempo das suas operações financeiras!
                     </p>
-                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-xs text-blue-400">
-                      <strong>💡 Dica do Transporte:</strong> Se você não pagar frete ou não souber o custo de transporte, basta deixar em branco! O sistema definirá automaticamente como <strong>zero</strong>.
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-2xl text-xs text-primary font-bold animate-pulse">
+                      ✨ O Cabeçalho está destacado no topo da sua tela agora!
                     </div>
                   </motion.div>
                 )}
@@ -273,15 +298,15 @@ export function Dashboard() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
-                        <ShoppingCart size={20} />
+                        <TrendingUp size={20} />
                       </div>
-                      <h3 className="text-xl font-bold text-foreground">2. Registre uma Venda</h3>
+                      <h3 className="text-xl font-bold text-foreground">O Seu Lucro Real</h3>
                     </div>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Sempre que um cliente comprar frangos, registre na aba <strong className="text-foreground">Vendas (PDV)</strong>. Digite o nome do cliente (se for novo, o sistema cadastra sozinho!) e o quanto ele pagou.
+                      Este é o indicador mais valioso do seu negócio! Ele soma o faturamento e desconta de forma automática o custo inicial das aves, fretes, rações e despesas fixas para mostrar o dinheiro limpo no seu bolso.
                     </p>
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-xs text-emerald-400">
-                      <strong>🤝 Fiado Inteligente:</strong> Se o cliente não pagar tudo na hora, deixe o saldo pendente. A dívida vai aparecer automaticamente no perfil dele na aba <strong>Clientes & Fiados</strong>!
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-xs text-emerald-400 font-bold animate-pulse">
+                      📈 Veja o card de "Lucro Real" iluminado na barra de indicadores acima!
                     </div>
                   </motion.div>
                 )}
@@ -296,15 +321,56 @@ export function Dashboard() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
-                        <TrendingUp size={20} />
+                        <ShoppingCart size={20} />
                       </div>
-                      <h3 className="text-xl font-bold text-foreground">3. Lance os Custos Mensais</h3>
+                      <h3 className="text-xl font-bold text-foreground">Vendas Recentes (PDV)</h3>
                     </div>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Na aba <strong className="text-foreground">Finanças</strong>, você pode registrar insumos (como sacos de Ração e Vacinas) e contas gerais (como água, luz e ração extra).
+                      Nesta tabela, você acompanha as últimas 5 vendas que realizou. Se você vender fiado, o valor em dívida do cliente aparecerá aqui marcado em vermelho automaticamente!
+                    </p>
+                    <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl text-xs text-purple-400 font-bold animate-pulse">
+                      🛒 A tabela de "Vendas Recentes" está piscando em evidência no ecrã!
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentSlide === 4 && (
+                  <motion.div
+                    key="slide4"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+                        <Package size={20} />
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground">Estoque de Lotes Ativos</h3>
+                    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Aqui você vê a quantidade de aves restantes de cada lote ativo. A barra de progresso encolhe de forma inteligente conforme você vai vendendo os frangos.
+                    </p>
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-amber-400 font-bold animate-pulse">
+                      📦 O card de "Estoque de Lotes" está destacado no canto inferior!
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentSlide === 5 && (
+                  <motion.div
+                    key="slide5"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                  >
+                    <h3 className="text-2xl font-black text-foreground">Você está Pronto! 🎉</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Parabéns, você completou o tour e já conhece tudo no seu painel! 
                     </p>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      O sistema divide automaticamente os seus custos operacionais fixos pelos dias ativos do lote para mostrar o seu <strong>Lucro Real</strong> sem que você precise calcular nada!
+                      Para começar agora, vá ao menu lateral, clique em <strong>Lotes</strong> e abra o seu primeiro lote!
                     </p>
                   </motion.div>
                 )}
@@ -314,7 +380,7 @@ export function Dashboard() {
               <div className="flex items-center justify-between mt-8 pt-4 border-t border-border/50">
                 {/* Dots indicator */}
                 <div className="flex gap-1.5">
-                  {[0, 1, 2, 3].map((idx) => (
+                  {[0, 1, 2, 3, 4, 5].map((idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
@@ -336,7 +402,7 @@ export function Dashboard() {
                     </button>
                   )}
 
-                  {currentSlide < 3 ? (
+                  {currentSlide < 5 ? (
                     <button
                       onClick={() => setCurrentSlide(prev => prev + 1)}
                       className="px-4 py-2 bg-primary rounded-xl text-xs font-black text-black flex items-center gap-1 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20"

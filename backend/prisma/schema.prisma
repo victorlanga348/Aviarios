@@ -8,12 +8,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. Usuário (Acesso ao sistema)
+enum Roles {
+  ADMIN
+  USER
+}
+
 model User {
   id            String          @id @default(uuid())
   name          String
   email         String          @unique
   password      String
+  role          Roles        @default(USER)
+  // Relações
   batches       Batch[]
   customers     Customer[]
   sales         Sale[]
@@ -33,7 +39,6 @@ model Batch {
   status          BatchStatus    @default(ACTIVE) // ACTIVE ou CLOSED
   userId          String
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   // Relações
   expenses        BatchExpense[] // Custos de Ração e Vacina deste lote
   losses          Loss[]         // Registros de mortes deste lote

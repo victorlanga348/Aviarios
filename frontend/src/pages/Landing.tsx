@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Bird, 
   TrendingUp, 
-  Wallet, 
-  Receipt, 
-  ShoppingCart, 
   ArrowRight, 
   ShieldCheck, 
   ChevronRight, 
@@ -17,7 +14,6 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export function Landing() {
   const navigate = useNavigate();

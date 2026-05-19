@@ -19,6 +19,13 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
             customer = await tx.customer.findUnique({ 
                 where: { id: customerIdentifier, userId } 
             });
+            
+            if (customer && !customer.phone && customerPhone) {
+                customer = await tx.customer.update({
+                    where: { id: customer.id },
+                    data: { phone: sanitize(customerPhone) }
+                });
+            }
         } else {
             const allCustomers = await tx.customer.findMany({
                 where: { userId }
@@ -43,6 +50,11 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
                         phone: customerPhone ? sanitize(customerPhone) : null,
                         userId
                     }
+                });
+            } else if (!customer.phone && customerPhone) {
+                customer = await tx.customer.update({
+                    where: { id: customer.id },
+                    data: { phone: sanitize(customerPhone) }
                 });
             }
         }

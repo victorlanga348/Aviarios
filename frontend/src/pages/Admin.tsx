@@ -28,7 +28,8 @@ export function Admin() {
     queryFn: async () => {
       const response = await api.get('/admin/stats');
       return response.data;
-    }
+    },
+    refetchInterval: 5000
   });
 
   const { data: users, isLoading: usersLoading } = useQuery<AdminUser[]>({
@@ -36,7 +37,8 @@ export function Admin() {
     queryFn: async () => {
       const response = await api.get('/admin/users');
       return response.data;
-    }
+    },
+    refetchInterval: 5000
   });
 
   const updateRoleMutation = useMutation({

@@ -33,19 +33,19 @@ export function Login() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Botão absoluto e flutuante de voltar ao início - super elegante no PC e no celular */}
-      <button 
-        onClick={() => navigate('/')}
-        className="absolute top-4 left-4 sm:top-6 sm:left-6 inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors font-bold text-xs sm:text-sm bg-secondary/40 border border-border/50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl z-20 backdrop-blur-sm"
-      >
-        <ArrowLeft size={16} /> Voltar para o início
-      </button>
-
       {/* Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-700"></div>
 
       <div className="w-full max-w-md z-10">
+        {/* Botão de voltar ao início - flutua no PC (top-left) e entra no fluxo acima do formulário no celular */}
+        <button 
+          onClick={() => navigate('/')}
+          className="relative sm:absolute sm:top-6 sm:left-6 inline-flex items-center gap-2 text-muted sm:hover:text-foreground transition-colors font-bold text-xs sm:text-sm bg-secondary/40 border border-border/50 px-3.5 py-2 rounded-xl z-20 backdrop-blur-sm mb-6 sm:mb-0 active:scale-95"
+        >
+          <ArrowLeft size={16} /> Voltar para o início
+        </button>
+
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 mb-6 animate-float">
             <LogIn size={40} className="text-primary" />

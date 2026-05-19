@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
-import type { Batch, BatchCreateInput } from '../@types';
+import type { Batch, BatchCreateInput, LossCreateInput } from '../@types';
 
 export function useBatches() {
   const queryClient = useQueryClient();
@@ -59,6 +59,40 @@ export function useBatches() {
     }
   });
 
+  // Registrar perda (morte)
+  const registerLossMutation = useMutation({
+    mutationFn: async (newLoss: LossCreateInput) => {
+      await api.post('/losses', newLoss);
+    },
+    onSuccess: () => {
+      toast.success('Morte/Perda registrada com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Erro ao registrar perda.';
+      toast.error(msg);
+    }
+  });
+
+  // Desfazer perda (morte)
+  const undoLossMutation = useMutation({
+    mutationFn: async (lossId: string) => {
+      await api.delete(`/losses/${lossId}`);
+    },
+    onSuccess: () => {
+      toast.success('Registro de morte desfeito com sucesso! Aves reincorporadas.');
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Erro ao desfazer perda.';
+      toast.error(msg);
+    }
+  });
+
   return {
     batches: batchesQuery.data ?? [],
     isLoading: batchesQuery.isLoading,
@@ -67,6 +101,10 @@ export function useBatches() {
     updateBatchStatus: updateBatchStatusMutation.mutateAsync,
     isUpdatingStatus: updateBatchStatusMutation.isPending,
     deleteBatch: deleteBatchMutation.mutateAsync,
-    isDeleting: deleteBatchMutation.isPending
+    isDeleting: deleteBatchMutation.isPending,
+    registerLoss: registerLossMutation.mutateAsync,
+    isRegisteringLoss: registerLossMutation.isPending,
+    undoLoss: undoLossMutation.mutateAsync,
+    isUndoingLoss: undoLossMutation.isPending
   };
 }

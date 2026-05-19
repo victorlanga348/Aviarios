@@ -77,11 +77,13 @@ img,
               box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.bg-card:hover, 
-.bg-card\/40:hover {
-  border-color: rgba(16, 185, 129, 0.25);
-  box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.08),
-              inset 0 0 20px rgba(16, 185, 129, 0.02); /* Solid overlay glow that never affects card opacity */
+@media (hover: hover) {
+  .bg-card:hover, 
+  .bg-card\/40:hover {
+    border-color: rgba(16, 185, 129, 0.25);
+    box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.08),
+                inset 0 0 20px rgba(16, 185, 129, 0.02); /* Solid overlay glow that never affects card opacity */
+  }
 }
 
 /* 2. Interactive / Clickable Cards (Smooth lift and shadow) */
@@ -92,11 +94,13 @@ img,
               box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.bg-card\/50:hover {
-  transform: translateY(-3px);
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 16px 36px -12px rgba(16, 185, 129, 0.12);
-  cursor: pointer;
+@media (hover: hover) {
+  .bg-card\/50:hover {
+    transform: translateY(-3px);
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 16px 36px -12px rgba(16, 185, 129, 0.12);
+    cursor: pointer;
+  }
 }
 
 /* 3. Interactive Buttons (Tactile hover + active press without page-level conflict) */
@@ -110,26 +114,28 @@ input[type="submit"] {
               box-shadow 0.25s ease;
 }
 
-button:hover:not(:disabled), 
-.btn:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 20px -8px rgba(16, 185, 129, 0.4);
-}
+@media (hover: hover) {
+  button:hover:not(:disabled), 
+  .btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px -8px rgba(16, 185, 129, 0.4);
+  }
 
-/* Primary Green Buttons Hover */
-button.bg-primary:hover,
-.btn-primary:hover {
-  background-color: #059669 !important; /* Elegant emerald deep */
-  border-color: #059669 !important;
-  color: #ffffff !important;
-}
+  /* Primary Green Buttons Hover */
+  button.bg-primary:hover,
+  .btn-primary:hover {
+    background-color: #059669 !important; /* Elegant emerald deep */
+    border-color: #059669 !important;
+    color: #ffffff !important;
+  }
 
-/* Secondary / Outline Buttons Hover */
-button.bg-secondary:hover,
-button:hover:not(.bg-primary):not(.text-rose-500):not(:disabled) {
-  background-color: rgba(16, 185, 129, 0.08);
-  color: #10b981;
-  border-color: rgba(16, 185, 129, 0.25);
+  /* Secondary / Outline Buttons Hover */
+  button.bg-secondary:hover,
+  button:hover:not(.bg-primary):not(.text-rose-500):not(:disabled) {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
 }
 
 /* Tactile Active click shrink */
@@ -155,10 +161,12 @@ a.flex.items-center.gap-4 {
 }
 
 /* Non-active links slide-right + green tint on hover */
-a.flex.items-center.gap-4:hover:not(.bg-primary) {
-  padding-left: 1.25rem; /* Smooth right slide */
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.06);
+@media (hover: hover) {
+  a.flex.items-center.gap-4:hover:not(.bg-primary) {
+    padding-left: 1.25rem; /* Smooth right slide */
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.06);
+  }
 }
 
 /* Active links breathe with gradient shadow */
@@ -166,10 +174,12 @@ a.flex.items-center.gap-4.bg-primary {
   box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.25);
 }
 
-a.flex.items-center.gap-4.bg-primary:hover {
-  background-color: #059669 !important;
-  box-shadow: 0 8px 20px -2px rgba(16, 185, 129, 0.4);
-  padding-left: 1.25rem;
+@media (hover: hover) {
+  a.flex.items-center.gap-4.bg-primary:hover {
+    background-color: #059669 !important;
+    box-shadow: 0 8px 20px -2px rgba(16, 185, 129, 0.4);
+    padding-left: 1.25rem;
+  }
 }
 
 /* 5. Action and Trash Buttons (Pure color feedback + micro scaling) */
@@ -182,12 +192,14 @@ button.text-rose-500 svg {
               border-color 0.25s ease;
 }
 
-button.text-rose-500:hover,
-a.text-rose-500:hover {
-  transform: scale(1.06);
-  background-color: rgba(244, 63, 94, 0.1);
-  color: #f43f5e;
-  border-color: rgba(244, 63, 94, 0.15);
+@media (hover: hover) {
+  button.text-rose-500:hover,
+  a.text-rose-500:hover {
+    transform: scale(1.06);
+    background-color: rgba(244, 63, 94, 0.1);
+    color: #f43f5e;
+    border-color: rgba(244, 63, 94, 0.15);
+  }
 }
 
 /* 6. Inputs subtle focus glow (No general all transition to prevent mobile keyboard resize snap) */

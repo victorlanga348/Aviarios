@@ -70,9 +70,56 @@ async function listLosses(userId: string, batchId: string) {
     const losses = await prisma.loss.findMany({
         where: {
             batchId
+        },
+        orderBy: {
+            date: 'desc'
         }
     });
     return losses;
 }
 
-export { registerLoss, listLosses }
+async function deleteLoss(userId: string, id: string) {
+    return await prisma.$transaction(async (tx) => {
+        const loss = await tx.loss.findUnique({
+            where: { id },
+            include: {
+                batch: true
+            }
+        });
+
+        if (!loss) {
+            throw new Error('Registro de perda não encontrado');
+        }
+
+        if (loss.batch.userId !== userId) {
+            throw new Error('Acesso negado');
+        }
+
+        // Increment the batch's actual quantity
+        const updatedBatch = await tx.batch.update({
+            where: { id: loss.batchId },
+            data: {
+                actualQuantity: {
+                    increment: loss.quantity
+                }
+            }
+        });
+
+        // Reopen batch if it was CLOSED but now has birds
+        if (updatedBatch.status === 'CLOSED' && updatedBatch.actualQuantity !== null && updatedBatch.actualQuantity > 0) {
+            await tx.batch.update({
+                where: { id: loss.batchId },
+                data: { status: BatchStatus.ACTIVE }
+            });
+        }
+
+        // Delete the loss record
+        await tx.loss.delete({
+            where: { id }
+        });
+
+        return { success: true };
+    });
+}
+
+export { registerLoss, listLosses, deleteLoss }

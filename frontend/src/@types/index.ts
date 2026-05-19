@@ -8,6 +8,14 @@ export interface User {
   email: string;
 }
 
+export interface Loss {
+  id: string;
+  batchId: string;
+  quantity: number;
+  reason?: string;
+  date: string;
+}
+
 export interface Batch {
   id: string;
   name: string;
@@ -17,6 +25,7 @@ export interface Batch {
   costPerBird: number;
   transportCost: number;
   status: BatchStatus;
+  losses?: Loss[];
 }
 
 export interface Sale {

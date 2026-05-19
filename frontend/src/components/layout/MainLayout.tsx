@@ -49,7 +49,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
   const routes = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/batches', label: 'Lotes', icon: Package },
     { path: '/sales', label: 'Vendas (PDV)', icon: ShoppingCart },
     { path: '/customers', label: 'Clientes', icon: Users },

@@ -18,7 +18,10 @@ async function createBatch(userId: string, name: string, costPerBird: number, in
 
 async function listBatches(userId: string) {
     const batches = await prisma.batch.findMany({
-        where: { userId }
+        where: { userId },
+        include: {
+            losses: true
+        }
     });
     return batches;
 }

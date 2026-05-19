@@ -57,24 +57,28 @@ export function Dashboard() {
           value={data?.totalLiveBirds || 0} 
           icon={<Bird size={24} />} 
           color="blue"
+          description="Aves que ainda estão no aviário hoje."
         />
         <MetricCard 
           title="Lucro Real" 
           value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.realProfit || 0)} 
           icon={<TrendingUp size={24} />} 
           color="green"
+          description="O dinheiro que sobrou limpo após pagar as despesas."
         />
         <MetricCard 
           title="Contas a Receber" 
           value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.totalToReceive || 0)} 
           icon={<Wallet size={24} />} 
           color="yellow"
+          description="Dinheiro de vendas a fiado que os clientes ainda devem."
         />
         <MetricCard 
           title="Saldo de Caixa" 
           value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.cashBalance || 0)} 
           icon={<Receipt size={24} />} 
           color="red"
+          description="Todo o dinheiro vivo que você tem na mão agora."
         />
       </div>
 

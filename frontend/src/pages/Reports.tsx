@@ -1,5 +1,5 @@
 import { useReports } from '../hooks/useReports';
-import { FileText, Download, TrendingUp } from 'lucide-react';
+import { FileText, Download, TrendingUp, HelpCircle } from 'lucide-react';
 import { useGlobalDate } from '../contexts/DateContext';
 import { motion } from 'framer-motion';
 
@@ -41,7 +41,7 @@ export function Reports() {
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
         <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-foreground">
-          <FileText className="text-primary" shrink-0 /> <span className="truncate">Relatório de Performance</span>
+          <FileText className="text-primary shrink-0" /> <span className="truncate">Relatório de Performance</span>
         </h2>
         <button 
           onClick={handlePrint}
@@ -70,16 +70,45 @@ export function Reports() {
 
       {/* RESUMO DE MÉTRICAS (Formatado para PDF) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
-        <div className="bg-card p-6 rounded-2xl border border-border shadow-[var(--shadow)] print:bg-gray-50 print:border-gray-200 print:shadow-none">
-          <p className="text-muted text-[10px] uppercase font-black tracking-widest mb-2 print:text-gray-500">Receita Total</p>
+        {/* Receita Card */}
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-[var(--shadow)] print:bg-gray-50 print:border-gray-200 print:shadow-none relative">
+          <div className="flex items-center gap-1.5 mb-2 select-none group/tooltip">
+            <p className="text-muted text-[10px] uppercase font-black tracking-widest print:text-gray-500">Receita Total</p>
+            <div className="cursor-help text-muted/40 hover:text-primary transition-colors py-0.5 print:hidden">
+              <HelpCircle size={14} />
+              <div className="pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-all duration-200 absolute top-full left-0 mt-2 w-48 sm:w-56 p-3.5 bg-foreground border border-border text-background text-xs font-semibold leading-relaxed rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] z-50 animate-in fade-in slide-in-from-top-1">
+                Todo o dinheiro que entrou com as vendas de aves.
+              </div>
+            </div>
+          </div>
           <p className="text-2xl font-black text-emerald-500 print:text-emerald-700">MZN {report?.totalIncomes.toLocaleString()}</p>
         </div>
-        <div className="bg-card p-6 rounded-2xl border border-border shadow-[var(--shadow)] print:bg-gray-50 print:border-gray-200 print:shadow-none">
-          <p className="text-muted text-[10px] uppercase font-black tracking-widest mb-2 print:text-gray-500">Custo Total (CMV + Despesas)</p>
+
+        {/* Custo Card */}
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-[var(--shadow)] print:bg-gray-50 print:border-gray-200 print:shadow-none relative">
+          <div className="flex items-center gap-1.5 mb-2 select-none group/tooltip">
+            <p className="text-muted text-[10px] uppercase font-black tracking-widest print:text-gray-500">Custo Total</p>
+            <div className="cursor-help text-muted/40 hover:text-primary transition-colors py-0.5 print:hidden">
+              <HelpCircle size={14} />
+              <div className="pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-all duration-200 absolute top-full left-0 mt-2 w-48 sm:w-56 p-3.5 bg-foreground border border-border text-background text-xs font-semibold leading-relaxed rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] z-50 animate-in fade-in slide-in-from-top-1">
+                Tudo o que você gastou para criar as aves (ração, vacinas e contas).
+              </div>
+            </div>
+          </div>
           <p className="text-2xl font-black text-rose-500 print:text-rose-700">MZN {report?.totalExpenses.toLocaleString()}</p>
         </div>
-        <div className="bg-card p-6 rounded-2xl border border-primary/20 shadow-[var(--shadow)] print:bg-primary/5 print:border-primary/30">
-          <p className="text-muted text-[10px] uppercase font-black tracking-widest mb-2 print:text-primary/70">Lucro Líquido</p>
+
+        {/* Lucro Card */}
+        <div className="bg-card p-6 rounded-2xl border border-primary/20 shadow-[var(--shadow)] print:bg-primary/5 print:border-primary/30 relative">
+          <div className="flex items-center gap-1.5 mb-2 select-none group/tooltip">
+            <p className="text-muted text-[10px] uppercase font-black tracking-widest print:text-primary/70">Lucro Líquido</p>
+            <div className="cursor-help text-muted/40 hover:text-primary transition-colors py-0.5 print:hidden">
+              <HelpCircle size={14} />
+              <div className="pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-all duration-200 absolute top-full left-0 mt-2 w-48 sm:w-56 p-3.5 bg-foreground border border-border text-background text-xs font-semibold leading-relaxed rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] z-50 animate-in fade-in slide-in-from-top-1">
+                O dinheiro limpo que sobrou livre para você.
+              </div>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <p className="text-2xl font-black text-foreground">MZN {report?.netMargin.toLocaleString()}</p>
             <TrendingUp size={24} className="text-primary" />

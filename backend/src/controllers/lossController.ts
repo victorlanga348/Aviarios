@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { registerLoss, listLosses } from '../services/lossService.js';
+import { registerLoss, listLosses, deleteLoss } from '../services/lossService.js';
 import { getErrorMessage } from '../types/express.js';
 
 const registerLossController = async (req: Request, res: Response) => {
@@ -22,4 +22,14 @@ const listLossesController = async (req: Request, res: Response) => {
     }
 };
 
-export { registerLossController, listLossesController };
+const deleteLossController = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params as { id: string };
+        const result = await deleteLoss(req.userId!, id);
+        res.status(200).json(result);
+    } catch (error: unknown) {
+        res.status(500).json({ message: getErrorMessage(error) });
+    }
+};
+
+export { registerLossController, listLossesController, deleteLossController };

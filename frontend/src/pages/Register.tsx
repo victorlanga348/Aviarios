@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
-import { UserPlus, Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export function Register() {
   const [name, setName] = useState('');
@@ -33,6 +33,14 @@ export function Register() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Botão absoluto e flutuante de voltar ao início - super elegante no PC e no celular */}
+      <button 
+        onClick={() => navigate('/')}
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors font-bold text-xs sm:text-sm bg-secondary/40 border border-border/50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl z-20 backdrop-blur-sm"
+      >
+        <ArrowLeft size={16} /> Voltar para o início
+      </button>
+
       {/* Background Decor */}
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-700"></div>

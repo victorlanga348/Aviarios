@@ -13,7 +13,7 @@ interface Props {
 
 export function CreateBatchModal({ isOpen, onClose, onSubmit, isLoading }: Props) {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<BatchFormData>({
-    resolver: zodResolver(batchSchema)
+    resolver: zodResolver(batchSchema) as any
   });
 
   const handleFormSubmit = async (data: BatchFormData) => {

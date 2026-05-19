@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDashboard } from '../hooks/useDashboard';
 import { MetricCard } from '../components/Dashboard/MetricCard';
-import { Bird, Wallet, TrendingUp, Receipt, ShoppingCart, Package, X, ChevronRight, BookOpen, Sparkles } from 'lucide-react';
+import { Bird, Wallet, TrendingUp, Receipt, ShoppingCart, Package, X, ChevronRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSales } from '../hooks/useSales';
 import { useBatches } from '../hooks/useBatches';

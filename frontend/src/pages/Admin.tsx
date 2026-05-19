@@ -119,17 +119,17 @@ export function Admin() {
             Gestão de Usuários
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto scrollbar-hide pb-2">
+          <table className="w-full text-left border-collapse whitespace-nowrap min-w-max">
             <thead>
               <tr className="bg-secondary/50 text-muted text-sm font-semibold">
-                <th className="p-4">Nome</th>
+                <th className="p-4 rounded-tl-xl">Nome</th>
                 <th className="p-4">Email</th>
                 <th className="p-4 text-center">Frangos Ativos</th>
                 <th className="p-4 text-center">Lotes</th>
                 <th className="p-4 text-center">Vendas</th>
                 <th className="p-4 text-center">Cargo</th>
-                <th className="p-4 text-center">Ações</th>
+                <th className="p-4 text-center rounded-tr-xl">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border font-medium">

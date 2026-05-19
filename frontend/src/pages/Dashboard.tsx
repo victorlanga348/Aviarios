@@ -54,10 +54,11 @@ export function Dashboard() {
   }
 
   return (
-    <motion.div
-      key={`${queryMonth}-${queryYear}`}
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
+    <>
+      <motion.div
+        key={`${queryMonth}-${queryYear}`}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
       className="space-y-4 sm:space-y-6"
     >
@@ -357,5 +358,6 @@ export function Dashboard() {
         </div>
       )}
     </AnimatePresence>
+    </>
   );
 }

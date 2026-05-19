@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Shield, ShieldAlert, ShieldCheck, Users } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Users, AlertTriangle, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 
 interface AdminStats {
@@ -22,6 +24,7 @@ interface AdminUser {
 export function Admin() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [roleModal, setRoleModal] = useState<{ isOpen: boolean; userId: string; userName: string; currentRole: string } | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ['admin-stats'],
@@ -51,11 +54,16 @@ export function Admin() {
     }
   });
 
-  const handleRoleToggle = (userId: string, currentRole: string) => {
-    const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
-    if (window.confirm(`Tem certeza que deseja mudar a permissão deste usuário para ${newRole}?`)) {
-      updateRoleMutation.mutate({ id: userId, role: newRole });
-    }
+  const handleRoleToggle = (userId: string, userName: string, currentRole: string) => {
+    setRoleModal({ isOpen: true, userId, userName, currentRole });
+  };
+
+  const confirmRoleChange = () => {
+    if (!roleModal) return;
+    const newRole = roleModal.currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+    updateRoleMutation.mutate({ id: roleModal.userId, role: newRole }, {
+      onSuccess: () => setRoleModal(null)
+    });
   };
 
   const formatCurrency = (value: number) => {
@@ -161,7 +169,7 @@ export function Admin() {
                     </td>
                     <td className="p-4 text-center">
                       <button
-                        onClick={() => handleRoleToggle(u.id, u.role)}
+                        onClick={() => handleRoleToggle(u.id, u.name, u.role)}
                         disabled={updateRoleMutation.isPending || u.id === user?.id}
                         className="px-3 py-1.5 rounded-xl font-bold text-xs bg-secondary hover:bg-primary hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1 mx-auto"
                       >
@@ -214,7 +222,7 @@ export function Admin() {
 
                 <div className="pt-1">
                   <button
-                    onClick={() => handleRoleToggle(u.id, u.role)}
+                    onClick={() => handleRoleToggle(u.id, u.name, u.role)}
                     disabled={updateRoleMutation.isPending || u.id === user?.id}
                     className="w-full py-2.5 rounded-xl font-bold text-xs bg-secondary hover:bg-primary hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
@@ -227,6 +235,70 @@ export function Admin() {
           )}
         </div>
       </div>
+
+      {/* CUSTOM CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {roleModal?.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setRoleModal(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
+              
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <AlertTriangle size={24} />
+                </div>
+                <button 
+                  onClick={() => setRoleModal(null)}
+                  className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <h3 className="text-xl font-black mb-2 text-foreground">Atenção Necessária!</h3>
+              
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Você está prestes a mudar as permissões do usuário <strong className="text-foreground">{roleModal.userName}</strong>.
+                <br /><br />
+                {roleModal.currentRole === 'ADMIN' ? (
+                  <span>Ele deixará de ser Administrador e <strong>perderá acesso</strong> a este painel e à visão global do sistema.</span>
+                ) : (
+                  <span>Ele passará a ser Administrador e <strong>terá acesso total</strong> a todos os relatórios, finanças e gestão de usuários.</span>
+                )}
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => setRoleModal(null)}
+                  className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmRoleChange}
+                  disabled={updateRoleMutation.isPending}
+                  className="flex-1 px-4 py-3 bg-primary rounded-xl font-black text-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {updateRoleMutation.isPending ? 'Aplicando...' : 'Sim, alterar permissão'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

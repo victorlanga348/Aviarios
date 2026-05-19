@@ -41,8 +41,13 @@ export function RegisterLossModal({ isOpen, onClose, onSubmit, isLoading, batch 
       setQuantity('');
       setReason('');
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Ocorreu um erro ao registrar a perda.');
+    } catch (err: unknown) {
+      let msg = 'Ocorreu um erro ao registrar a perda.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const errObj = err as { response?: { data?: { message?: string } } };
+        msg = errObj.response?.data?.message || msg;
+      }
+      setError(msg);
     }
   };
 

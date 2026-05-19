@@ -70,8 +70,12 @@ export function useBatches() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     },
-    onError: (error: any) => {
-      const msg = error.response?.data?.message || 'Erro ao registrar perda.';
+    onError: (error: unknown) => {
+      let msg = 'Erro ao registrar perda.';
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errObj = error as { response?: { data?: { message?: string } } };
+        msg = errObj.response?.data?.message || msg;
+      }
       toast.error(msg);
     }
   });
@@ -87,8 +91,12 @@ export function useBatches() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     },
-    onError: (error: any) => {
-      const msg = error.response?.data?.message || 'Erro ao desfazer perda.';
+    onError: (error: unknown) => {
+      let msg = 'Erro ao desfazer perda.';
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errObj = error as { response?: { data?: { message?: string } } };
+        msg = errObj.response?.data?.message || msg;
+      }
       toast.error(msg);
     }
   });

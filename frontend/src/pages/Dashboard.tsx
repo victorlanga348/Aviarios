@@ -208,42 +208,33 @@ export function Dashboard() {
     {/* ONBOARDING / GUIA DE BOAS-VINDAS */}
     <AnimatePresence>
       {showOnboarding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
+        <div className="fixed md:bottom-6 md:right-6 bottom-4 left-4 right-4 md:left-auto md:w-[420px] z-50">
+          {/* Floating Card Container */}
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/75 backdrop-blur-md"
-            onClick={handleFinishOnboarding}
-          />
-
-          {/* Modal Container */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 25 }}
+            initial={{ opacity: 0, scale: 0.9, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 25 }}
-            className="relative w-full max-w-lg bg-card border border-border rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden"
+            exit={{ opacity: 0, scale: 0.9, y: 50 }}
+            className="relative w-full bg-card border-2 border-primary/30 rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
           >
             {/* Top gradient border bar */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-emerald-400"></div>
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-emerald-400"></div>
 
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2 text-primary">
-                <Sparkles size={20} className="animate-pulse" />
-                <span className="text-[10px] uppercase font-black tracking-widest">Guia Rápido</span>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <Sparkles size={18} className="animate-pulse" />
+                <span className="text-[10px] uppercase font-black tracking-widest">Guia Rápido de Ações</span>
               </div>
               <button 
                 onClick={handleFinishOnboarding}
-                className="p-1.5 bg-secondary hover:bg-secondary/80 rounded-full text-muted hover:text-foreground transition-all"
+                className="p-1 bg-secondary hover:bg-secondary/80 rounded-full text-muted hover:text-foreground transition-all"
               >
-                <X size={16} />
+                <X size={14} />
               </button>
             </div>
 
             {/* Slides Content */}
-            <div className="min-h-[220px] flex flex-col justify-between">
+            <div className="min-h-[140px] flex flex-col justify-between">
               <AnimatePresence mode="wait">
                 {currentSlide === 0 && (
                   <motion.div
@@ -251,16 +242,16 @@ export function Dashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
+                    className="space-y-2"
                   >
-                    <h2 className="text-2xl font-black leading-tight text-foreground">
+                    <h2 className="text-lg font-black leading-tight text-foreground">
                       Bem-vindo ao <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">Aviário Pro</span>! 🚀
                     </h2>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Estamos muito entusiasmados em ajudar você! Preparamos um <strong>Tour Interativo de 1 minuto</strong> para mostrar exatamente onde fica cada recurso no seu ecrã.
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Preparamos este <strong>tour rápido de 1 minuto</strong> para te mostrar as ações e botões da página de forma interativa.
                     </p>
-                    <p className="text-muted-foreground text-xs italic">
-                      À medida que avançarmos, repare que o elemento correspondente vai ficar iluminado e destacado no fundo!
+                    <p className="text-primary text-[10px] font-bold">
+                      💡 Repare que cada elemento em foco ficará iluminado na tela ao avançar!
                     </p>
                   </motion.div>
                 )}
@@ -271,20 +262,15 @@ export function Dashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
+                    className="space-y-2"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
-                        <Sparkles size={20} />
-                      </div>
-                      <h3 className="text-xl font-bold text-foreground">Painel de Boas-Vindas</h3>
+                    <div className="flex items-center gap-2 text-blue-500">
+                      <Sparkles size={16} />
+                      <h3 className="text-sm font-bold text-foreground">Filtro de Período</h3>
                     </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Aqui no topo, o sistema mostra o seu nome e a data selecionada. É onde você se localiza no tempo das suas operações financeiras!
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Use este seletor no topo da tela para trocar o Mês e Ano de análise. Todos os relatórios, lotes e vendas do site mudarão instantaneamente para o período escolhido.
                     </p>
-                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-2xl text-xs text-primary font-bold animate-pulse">
-                      ✨ O Cabeçalho está destacado no topo da sua tela agora!
-                    </div>
                   </motion.div>
                 )}
 
@@ -294,20 +280,15 @@ export function Dashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
+                    className="space-y-2"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
-                        <TrendingUp size={20} />
-                      </div>
-                      <h3 className="text-xl font-bold text-foreground">O Seu Lucro Real</h3>
+                    <div className="flex items-center gap-2 text-emerald-500">
+                      <TrendingUp size={16} />
+                      <h3 className="text-sm font-bold text-foreground">Acompanhar Lucro Líquido</h3>
                     </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Este é o indicador mais valioso do seu negócio! Ele soma o faturamento e desconta de forma automática o custo inicial das aves, fretes, rações e despesas fixas para mostrar o dinheiro limpo no seu bolso.
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Este card consolida o faturamento líquido e deduz automaticamente todos os custos (aves, frete, ração e gastos fixos do mês) para exibir o lucro limpo no bolso.
                     </p>
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-xs text-emerald-400 font-bold animate-pulse">
-                      📈 Veja o card de "Lucro Real" iluminado na barra de indicadores acima!
-                    </div>
                   </motion.div>
                 )}
 
@@ -317,20 +298,15 @@ export function Dashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
+                    className="space-y-2"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
-                        <ShoppingCart size={20} />
-                      </div>
-                      <h3 className="text-xl font-bold text-foreground">Vendas Recentes (PDV)</h3>
+                    <div className="flex items-center gap-2 text-purple-500">
+                      <ShoppingCart size={16} />
+                      <h3 className="text-sm font-bold text-foreground">Gerenciador de Vendas Recentes</h3>
                     </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Nesta tabela, você acompanha as últimas 5 vendas que realizou. Se você vender fiado, o valor em dívida do cliente aparecerá aqui marcado em vermelho automaticamente!
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Visualize as últimas vendas registradas. Ao vender fiado, você poderá acompanhar os saldos pendentes diretamente na coluna de valor de cada cliente cadastrado.
                     </p>
-                    <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl text-xs text-purple-400 font-bold animate-pulse">
-                      🛒 A tabela de "Vendas Recentes" está piscando em evidência no ecrã!
-                    </div>
                   </motion.div>
                 )}
 
@@ -340,20 +316,15 @@ export function Dashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
+                    className="space-y-2"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
-                        <Package size={20} />
-                      </div>
-                      <h3 className="text-xl font-bold text-foreground">Estoque de Lotes Ativos</h3>
+                    <div className="flex items-center gap-2 text-amber-500">
+                      <Package size={16} />
+                      <h3 className="text-sm font-bold text-foreground">Monitorar Estoque Atual</h3>
                     </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Aqui você vê a quantidade de aves restantes de cada lote ativo. A barra de progresso encolhe de forma inteligente conforme você vai vendendo os frangos.
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Acompanhe as aves ativas em estoque. A barra reduz de tamanho conforme você realiza novas vendas, emitindo avisos quando um lote estiver prestes a se esgotar.
                     </p>
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-amber-400 font-bold animate-pulse">
-                      📦 O card de "Estoque de Lotes" está destacado no canto inferior!
-                    </div>
                   </motion.div>
                 )}
 
@@ -363,40 +334,40 @@ export function Dashboard() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
+                    className="space-y-2"
                   >
-                    <h3 className="text-2xl font-black text-foreground">Você está Pronto! 🎉</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Parabéns, você completou o tour e já conhece tudo no seu painel! 
+                    <h3 className="text-base font-black text-foreground">Tudo Pronto para Começar! 🎉</h3>
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Você aprendeu a navegar pelas ações da tela inicial!
                     </p>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Para começar agora, vá ao menu lateral, clique em <strong>Lotes</strong> e abra o seu primeiro lote!
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Agora, clique em <strong>Lotes</strong> no menu lateral para abrir seu primeiro lote e iniciar as vendas!
                     </p>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               {/* Navigation Actions */}
-              <div className="flex items-center justify-between mt-8 pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between mt-5 pt-3 border-t border-border/50">
                 {/* Dots indicator */}
-                <div className="flex gap-1.5">
+                <div className="flex gap-1">
                   {[0, 1, 2, 3, 4, 5].map((idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        currentSlide === idx ? 'w-6 bg-primary' : 'w-2 bg-secondary'
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        currentSlide === idx ? 'w-4 bg-primary' : 'w-1.5 bg-secondary'
                       }`}
                     />
                   ))}
                 </div>
 
                 {/* Buttons */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   {currentSlide > 0 && (
                     <button
                       onClick={() => setCurrentSlide(prev => prev - 1)}
-                      className="px-4 py-2 bg-secondary rounded-xl text-xs font-bold hover:bg-secondary/80 transition-all text-foreground"
+                      className="px-3 py-1.5 bg-secondary rounded-xl text-[10px] font-bold hover:bg-secondary/80 transition-all text-foreground"
                     >
                       Voltar
                     </button>
@@ -405,16 +376,16 @@ export function Dashboard() {
                   {currentSlide < 5 ? (
                     <button
                       onClick={() => setCurrentSlide(prev => prev + 1)}
-                      className="px-4 py-2 bg-primary rounded-xl text-xs font-black text-black flex items-center gap-1 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20"
+                      className="px-3 py-1.5 bg-primary rounded-xl text-[10px] font-black text-black flex items-center gap-0.5 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20"
                     >
-                      Avançar <ChevronRight size={14} />
+                      Avançar <ChevronRight size={12} />
                     </button>
                   ) : (
                     <button
                       onClick={handleFinishOnboarding}
-                      className="px-5 py-2 bg-gradient-to-r from-primary to-emerald-500 rounded-xl text-xs font-black text-black flex items-center gap-1 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20"
+                      className="px-4 py-1.5 bg-gradient-to-r from-primary to-emerald-500 rounded-xl text-[10px] font-black text-black flex items-center gap-0.5 hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/20"
                     >
-                      Começar Agora! ✨
+                      Começar! ✨
                     </button>
                   )}
                 </div>

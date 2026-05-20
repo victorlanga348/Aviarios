@@ -62,6 +62,11 @@ function HomeRoute() {
     return user?.role === 'ADMIN' ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />;
   }
 
+  const hasAccount = localStorage.getItem('@AviarioPro:hasAccount') === 'true';
+  if (hasAccount) {
+    return <Navigate to="/login" />;
+  }
+
   return <Landing />;
 }
 

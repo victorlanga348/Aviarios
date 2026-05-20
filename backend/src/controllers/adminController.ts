@@ -70,6 +70,19 @@ export const updateUserRoleController = async (req: Request, res: Response) => {
             res.status(400).json({ error: "Role inválida. Use 'ADMIN' ou 'USER'." });
             return;
         }
+
+        // Se o novo papel for USER, verifica se o usuário é o primeiro administrador cadastrado
+        if (role === 'USER') {
+            const firstAdmin = await prisma.user.findFirst({
+                where: { role: 'ADMIN' },
+                orderBy: { createdAt: 'asc' }
+            });
+
+            if (firstAdmin && firstAdmin.id === id) {
+                res.status(400).json({ error: "O primeiro administrador do sistema não pode ser destituído do cargo de ADMIN." });
+                return;
+            }
+        }
         
         const user = await prisma.user.update({
             where: { id },

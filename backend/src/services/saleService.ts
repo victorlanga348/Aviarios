@@ -2,7 +2,18 @@ import prisma from "../config/db.js";
 import { BatchStatus } from "@prisma/client";
 import { sanitize } from "../utils/sanitize.js";
 
-async function registerSale(userId: string, batchId: string, quantity: number, customerIdentifier: string, unitPrice?: number, amountPaid: number = 0, customerPhone?: string) {
+async function registerSale(
+    userId: string, 
+    batchId: string, 
+    quantity: number, 
+    customerIdentifier: string, 
+    unitPrice?: number, 
+    amountPaid: number = 0, 
+    customerPhone?: string,
+    isScheduled: boolean = false,
+    scheduledDeliveryDate?: string,
+    debtDueDate?: string
+) {
     return await prisma.$transaction(async (tx) => {
         const batch = await tx.batch.findUnique({
             where: { id: batchId, userId }
@@ -85,7 +96,11 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
                 amountPaid,
                 balance,
                 status,
-                userId
+                userId,
+                isScheduled,
+                scheduledDeliveryDate: scheduledDeliveryDate ? new Date(scheduledDeliveryDate) : null,
+                scheduledStatus: isScheduled ? "PENDING" : null,
+                debtDueDate: debtDueDate ? new Date(debtDueDate) : null
             }
         });
 
@@ -100,30 +115,73 @@ async function registerSale(userId: string, batchId: string, quantity: number, c
             });
         }
 
+        // SE NÃO for agendada, debita do estoque imediatamente
+        if (!isScheduled) {
+            try {
+                const updatedBatch = await tx.batch.update({
+                    where: { 
+                        id: batchId,
+                        userId,
+                        status: BatchStatus.ACTIVE, 
+                        actualQuantity: { gte: quantity } 
+                    },
+                    data: {
+                        actualQuantity: { decrement: quantity }
+                    }
+                });
+
+                if (updatedBatch.actualQuantity === 0) {
+                    await tx.batch.update({
+                        where: { id: batchId, userId },
+                        data: { status: BatchStatus.CLOSED }
+                    });
+                }
+            } catch (error) {
+                throw new Error('Não foi possível realizar a venda: Lote inexistente, fechado ou sem estoque suficiente');
+            }
+        }
+
+        return sale;
+    });
+}
+
+async function deliverScheduledSale(userId: string, saleId: string) {
+    return await prisma.$transaction(async (tx) => {
+        const sale = await tx.sale.findUnique({
+            where: { id: saleId, userId }
+        });
+
+        if (!sale) throw new Error('Venda não encontrada ou não pertence a este usuário');
+        if (!sale.isScheduled) throw new Error('Esta venda não foi agendada');
+        if (sale.scheduledStatus !== 'PENDING') throw new Error('Esta venda já foi entregue');
+
         try {
             const updatedBatch = await tx.batch.update({
                 where: { 
-                    id: batchId,
+                    id: sale.batchId,
                     userId,
                     status: BatchStatus.ACTIVE, 
-                    actualQuantity: { gte: quantity } 
+                    actualQuantity: { gte: sale.quantity } 
                 },
                 data: {
-                    actualQuantity: { decrement: quantity }
+                    actualQuantity: { decrement: sale.quantity }
                 }
             });
 
             if (updatedBatch.actualQuantity === 0) {
                 await tx.batch.update({
-                    where: { id: batchId, userId },
+                    where: { id: sale.batchId, userId },
                     data: { status: BatchStatus.CLOSED }
                 });
             }
         } catch (error) {
-            throw new Error('Não foi possível realizar a venda: Lote inexistente, fechado ou sem estoque suficiente');
+            throw new Error('Estoque insuficiente no lote para concluir a entrega');
         }
 
-        return sale;
+        return await tx.sale.update({
+            where: { id: saleId },
+            data: { scheduledStatus: 'DELIVERED' }
+        });
     });
 }
 
@@ -143,13 +201,16 @@ async function deleteSale(userId: string, saleId: string) {
             where: { id: saleId, userId }
         });
 
-        await tx.batch.update({
-            where: { id: sale.batchId, userId },
-            data: {
-                actualQuantity: { increment: sale.quantity },
-                status: BatchStatus.ACTIVE
-            }
-        });
+        // Se NÃO for agendada pendente (ou seja, se já saiu do estoque), devolve ao estoque
+        if (!sale.isScheduled || sale.scheduledStatus === "DELIVERED") {
+            await tx.batch.update({
+                where: { id: sale.batchId, userId },
+                data: {
+                    actualQuantity: { increment: sale.quantity },
+                    status: BatchStatus.ACTIVE
+                }
+            });
+        }
 
         return { message: "Venda deletada e estoque restaurado com sucesso" };
     });
@@ -240,4 +301,4 @@ async function getClientDebt(userId: string, clientId: string) {
     };
 }
 
-export { registerSale, listSales, listAllSales, listClientSales, deleteSale, getClientDebt }
+export { registerSale, deliverScheduledSale, listSales, listAllSales, listClientSales, deleteSale, getClientDebt }

@@ -19,6 +19,7 @@ model User {
   email         String          @unique
   password      String
   role          Roles        @default(USER)
+  createdAt     DateTime        @default(now())
   // Relações
   batches       Batch[]
   customers     Customer[]
@@ -94,27 +95,35 @@ model Customer {
 
 // 6. Vendas (O Registro da transação)
 model Sale {
-  id           String    @id @default(uuid())
-  batchId      String
-  customerId   String
-  quantity     Int
-  unitPrice    Float
-  totalValue   Float     // quantidade * unitPrice
-  date         DateTime  @default(now())
-  userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String          @id @default(uuid())
+  batchId               String
+  customerId            String
+  quantity              Int
+  unitPrice             Float
+  totalValue            Float           // quantidade * unitPrice
+  date                  DateTime        @default(now())
+  userId                String
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Dinheiro pago
-  amountPaid   Float     @default(0)
+  amountPaid            Float           @default(0)
   // Dinheiro que falta pagar
-  balance      Float     @default(0)
+  balance               Float           @default(0)
 
-  status       PaymentStatus @default(PENDENTE)
+  status                PaymentStatus   @default(PENDENTE)
+
+  // Vendas Agendadas
+  isScheduled           Boolean         @default(false)
+  scheduledDeliveryDate DateTime?
+  scheduledStatus       ScheduledStatus? // PENDING, DELIVERED, CANCELLED
+  
+  // Data Limite de Pagamento da Dívida
+  debtDueDate           DateTime?
 
   // Relações
-  batch        Batch     @relation(fields: [batchId], references: [id])
-  customer     Customer  @relation(fields: [customerId], references: [id])
-  payments     Payment[] // Para controlar dívidas e pagamentos parciais
+  batch                 Batch           @relation(fields: [batchId], references: [id])
+  customer              Customer        @relation(fields: [customerId], references: [id])
+  payments              Payment[]       // Para controlar dívidas e pagamentos parciais
 
   @@index([date])
   @@index([customerId])
@@ -144,6 +153,12 @@ enum PaymentStatus {
   PARCIALMENTE_PAGO
 }
 
+enum ScheduledStatus {
+  PENDING
+  DELIVERED
+  CANCELLED
+}
+
 // 8. Despesas Fixas (A Gaveta da Casa - Luz, Água)
 model FixedExpense {
   id          String   @id @default(uuid())
@@ -163,4 +178,15 @@ model Configuration {
   birdSellingPrice  Float    @default(0)
   updatedAt         DateTime @updatedAt
   user              User     @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+// 11. Controle de Manutenção
+model Maintenance {
+  id             String    @id @default("global")
+  isActive       Boolean   @default(false)    // Se a manutenção está ativa AGORA
+  estimatedTime  String?                      // Tempo estimado (Ex: "2 horas")
+  scheduledStart DateTime?                    // Data/Hora agendada para começar
+  durationHours  Float?                       // Duração estimada em horas
+  leadTimeHours  Int?                         // Horas de antecedência para aviso (opcional)
+  updatedAt      DateTime  @updatedAt
 }

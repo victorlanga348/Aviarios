@@ -49,7 +49,11 @@ export function Admin() {
       const response = await api.patch(`/admin/users/${id}/role`, { role });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(['admin-users'], (oldUsers: AdminUser[] | undefined) => {
+        if (!oldUsers) return [];
+        return oldUsers.map(u => u.id === data.user.id ? { ...u, role: data.user.role } : u);
+      });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     }
   });

@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.setItem('@AviarioPro:user', JSON.stringify(userData));
     localStorage.setItem('@AviarioPro:token', token);
+    localStorage.setItem('@AviarioPro:hasAccount', 'true');
   }
 
   function signOut() {

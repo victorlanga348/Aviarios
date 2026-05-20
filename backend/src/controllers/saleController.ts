@@ -1,10 +1,21 @@
 import type { Request, Response } from "express";
-import { registerSale, listSales, listAllSales, listClientSales, deleteSale, getClientDebt } from "../services/saleService.js";
+import { registerSale, deliverScheduledSale, listSales, listAllSales, listClientSales, deleteSale, getClientDebt } from "../services/saleService.js";
 import { getErrorMessage } from '../types/express.js';
 
 const registerSaleController = async (req: Request, res: Response) => {
     try {
-        const { batchId, quantity, customerId, customerName, customerPhone, unitPrice, amountPaid } = req.body as {
+        const { 
+            batchId, 
+            quantity, 
+            customerId, 
+            customerName, 
+            customerPhone, 
+            unitPrice, 
+            amountPaid,
+            isScheduled,
+            scheduledDeliveryDate,
+            debtDueDate
+        } = req.body as {
             batchId: string;
             quantity: string;
             customerId?: string;
@@ -12,6 +23,9 @@ const registerSaleController = async (req: Request, res: Response) => {
             customerPhone?: string;
             unitPrice?: string;
             amountPaid?: string;
+            isScheduled?: boolean;
+            scheduledDeliveryDate?: string;
+            debtDueDate?: string;
         };
 
         const customerIdentifier = customerId || customerName;
@@ -26,9 +40,22 @@ const registerSaleController = async (req: Request, res: Response) => {
             customerIdentifier,
             unitPrice ? Number(unitPrice) : undefined,
             amountPaid ? Number(amountPaid) : 0,
-            customerPhone
+            customerPhone,
+            Boolean(isScheduled),
+            scheduledDeliveryDate,
+            debtDueDate
         );
         res.status(201).json(sale);
+    } catch (error: unknown) {
+        res.status(500).json({ message: getErrorMessage(error) });
+    }
+};
+
+const deliverScheduledSaleController = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params as { id: string };
+        const result = await deliverScheduledSale(req.userId!, id);
+        res.status(200).json(result);
     } catch (error: unknown) {
         res.status(500).json({ message: getErrorMessage(error) });
     }
@@ -83,4 +110,4 @@ const getClientDebtController = async (req: Request, res: Response) => {
     }
 };
 
-export { registerSaleController, listSalesController, listAllSalesController, listClientSalesController, deleteSaleController, getClientDebtController };
+export { registerSaleController, deliverScheduledSaleController, listSalesController, listAllSalesController, listClientSalesController, deleteSaleController, getClientDebtController };

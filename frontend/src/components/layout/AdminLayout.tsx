@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  ShieldAlert, 
-  LogOut, 
-  Menu, 
-  X, 
+import {
+  ShieldAlert,
+  LogOut,
+  Menu,
+  X,
   Moon,
   LayoutDashboard,
   Sun
@@ -45,15 +45,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   ];
 
   const getNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all group relative ${
-      isActive 
-        ? 'bg-primary text-white shadow-lg shadow-primary/20' 
-        : 'hover:bg-secondary/50 text-muted hover:text-foreground'
+    `flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all group relative ${isActive
+      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+      : 'hover:bg-secondary/50 text-muted hover:text-foreground'
     }`;
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-background text-foreground transition-colors duration-300">
-      
+
       {/* Mobile Header */}
       <header className="md:hidden flex items-center justify-between p-4 border-b border-border bg-card z-50 fixed top-0 left-0 right-0 shadow-sm">
         <h1 className="text-primary font-black italic tracking-tighter">ADMIN PRO</h1>
@@ -70,7 +69,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar Overlay (Mobile) */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -83,7 +82,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <AnimatePresence>
         {(isSidebarOpen || window.innerWidth >= 768) && (
-          <motion.aside 
+          <motion.aside
             initial={{ x: -280 }}
             animate={{ x: 0 }}
             exit={{ x: -280 }}
@@ -102,10 +101,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
             <nav className="flex flex-col gap-2">
               {routes.map((route) => (
-                <NavLink 
-                  key={route.path} 
-                  to={route.path} 
-                  className={getNavLinkClass} 
+                <NavLink
+                  key={route.path}
+                  to={route.path}
+                  className={getNavLinkClass}
                   onClick={() => setIsSidebarOpen(false)}
                 >
                   <route.icon size={20} />
@@ -115,7 +114,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="mt-auto pt-6 border-t border-border space-y-4">
-              <button 
+              <button
                 onClick={toggleTheme}
                 className="hidden md:flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold text-muted hover:bg-secondary/50 hover:text-foreground transition-all"
               >

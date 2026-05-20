@@ -115,6 +115,66 @@ export function Dashboard() {
         />
       </div>
 
+      {/* Alertas de Hoje e Amanhã */}
+      {(() => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        const alerts = recentSales.filter((sale: Sale) => {
+          if (sale.balance > 0 && sale.debtDueDate) {
+            const dueDate = new Date(sale.debtDueDate).toISOString().split('T')[0];
+            if (dueDate === todayStr || dueDate === tomorrowStr) return true;
+          }
+          if (sale.isScheduled && sale.scheduledStatus === 'PENDING' && sale.scheduledDeliveryDate) {
+            const deliveryDate = new Date(sale.scheduledDeliveryDate).toISOString().split('T')[0];
+            if (deliveryDate === todayStr || deliveryDate === tomorrowStr) return true;
+          }
+          return false;
+        });
+
+        if (alerts.length === 0) return null;
+
+        return (
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-[2rem] p-6 shadow-sm">
+            <h3 className="font-bold flex items-center gap-2 text-amber-600 mb-4">
+              <Sparkles size={18} className="animate-pulse" /> Atenção: Compromissos para Hoje e Amanhã
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {alerts.map((sale: Sale) => {
+                const isDebt = sale.balance > 0 && sale.debtDueDate;
+                const dateStr = isDebt ? sale.debtDueDate : sale.scheduledDeliveryDate;
+                const isToday = new Date(dateStr!).toISOString().split('T')[0] === todayStr;
+
+                return (
+                  <div key={sale.id} className="bg-card border border-border p-4 rounded-2xl flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-foreground">{sale.customerName}</p>
+                      <p className="text-xs text-muted flex items-center gap-1 mt-1">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
+                          isToday ? 'bg-rose-500/20 text-rose-500' : 'bg-blue-500/20 text-blue-500'
+                        }`}>
+                          {isToday ? 'Hoje' : 'Amanhã'}
+                        </span>
+                        {isDebt ? 'Cobrar Dívida' : 'Entregar Venda Agendada'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {isDebt ? (
+                        <span className="font-black text-rose-500">MZN {sale.balance.toLocaleString()}</span>
+                      ) : (
+                        <span className="font-black text-emerald-500">{sale.quantity} aves</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Vendas Recentes */}
         <div 
@@ -173,7 +233,7 @@ export function Dashboard() {
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-16 -mt-16"></div>
           <h3 className="font-bold flex items-center gap-2 mb-6 relative z-10 text-foreground">
-            <Package size={18} className="text-primary" /> Estoque de Lotes
+            <Package size={18} className="text-primary" /> Stock de Lotes
           </h3>
           <div className="space-y-6 relative z-10">
             {batches?.filter(b => b.status === 'ACTIVE').slice(0, 4).map((batch: Batch) => {
@@ -208,7 +268,7 @@ export function Dashboard() {
     {/* ONBOARDING / GUIA DE BOAS-VINDAS */}
     <AnimatePresence>
       {showOnboarding && (
-        <div className="fixed md:bottom-6 md:right-6 bottom-4 left-4 right-4 md:left-auto md:w-[420px] z-50">
+        <div className="fixed md:bottom-6 md:right-6 bottom-4 left-4 right-4 md:left-auto md:w-[420px] z-[80]">
           {/* Floating Card Container */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 50 }}
@@ -248,7 +308,7 @@ export function Dashboard() {
                       Bem-vindo ao <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">Aviário Pro</span>! 🚀
                     </h2>
                     <p className="text-muted-foreground text-xs leading-relaxed">
-                      Preparamos este <strong>tour rápido de 1 minuto</strong> para te mostrar as ações e botões da página de forma interativa.
+                      Preparamos este <strong>guia rápido</strong> para te mostrar as principais ações da tela inicial de forma interativa.
                     </p>
                     <p className="text-primary text-[10px] font-bold">
                       💡 Repare que cada elemento em foco ficará iluminado na tela ao avançar!
@@ -269,7 +329,7 @@ export function Dashboard() {
                       <h3 className="text-sm font-bold text-foreground">Filtro de Período</h3>
                     </div>
                     <p className="text-muted-foreground text-xs leading-relaxed">
-                      Use este seletor no topo da tela para trocar o Mês e Ano de análise. Todos os relatórios, lotes e vendas do site mudarão instantaneamente para o período escolhido.
+                      Altere o mês e o ano no topo para atualizar instantaneamente todos os dados, lotes e vendas exibidos na tela.
                     </p>
                   </motion.div>
                 )}
@@ -287,7 +347,7 @@ export function Dashboard() {
                       <h3 className="text-sm font-bold text-foreground">Acompanhar Lucro Líquido</h3>
                     </div>
                     <p className="text-muted-foreground text-xs leading-relaxed">
-                      Este card consolida o faturamento líquido e deduz automaticamente todos os custos (aves, frete, ração e gastos fixos do mês) para exibir o lucro limpo no bolso.
+                      Veja aqui o lucro final consolidado do mês, após descontar automaticamente todas as despesas e custos do período.
                     </p>
                   </motion.div>
                 )}
@@ -302,10 +362,10 @@ export function Dashboard() {
                   >
                     <div className="flex items-center gap-2 text-purple-500">
                       <ShoppingCart size={16} />
-                      <h3 className="text-sm font-bold text-foreground">Gerenciador de Vendas Recentes</h3>
+                      <h3 className="text-sm font-bold text-foreground">Vendas Recentes</h3>
                     </div>
                     <p className="text-muted-foreground text-xs leading-relaxed">
-                      Visualize as últimas vendas registradas. Ao vender fiado, você poderá acompanhar os saldos pendentes diretamente na coluna de valor de cada cliente cadastrado.
+                      Visualize suas últimas transações. Use o botão <strong>Vendas</strong> no menu lateral para registrar novos pedidos e receber pagamentos.
                     </p>
                   </motion.div>
                 )}
@@ -320,10 +380,10 @@ export function Dashboard() {
                   >
                     <div className="flex items-center gap-2 text-amber-500">
                       <Package size={16} />
-                      <h3 className="text-sm font-bold text-foreground">Monitorar Estoque Atual</h3>
+                      <h3 className="text-sm font-bold text-foreground">Stock de Lotes</h3>
                     </div>
                     <p className="text-muted-foreground text-xs leading-relaxed">
-                      Acompanhe as aves ativas em estoque. A barra reduz de tamanho conforme você realiza novas vendas, emitindo avisos quando um lote estiver prestes a se esgotar.
+                      Monitore a quantidade de aves disponíveis. O stock é deduzido automaticamente a cada venda ou óbito registrado.
                     </p>
                   </motion.div>
                 )}

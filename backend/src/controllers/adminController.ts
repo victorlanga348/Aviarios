@@ -4,6 +4,11 @@ import { getErrorMessage } from '../types/express.js';
 
 export const listAllUsersController = async (req: Request, res: Response) => {
     try {
+        const firstAdmin = await prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            orderBy: { createdAt: 'asc' }
+        });
+
         const users = await prisma.user.findMany({
             select: {
                 id: true,
@@ -36,7 +41,8 @@ export const listAllUsersController = async (req: Request, res: Response) => {
                 email: user.email,
                 role: user.role,
                 _count: user._count,
-                totalChickens
+                totalChickens,
+                isFirstAdmin: firstAdmin ? (user.id === firstAdmin.id) : false
             };
         });
         
@@ -95,6 +101,81 @@ export const updateUserRoleController = async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error("Erro ao atualizar Role:", error);
+        res.status(500).json({ error: getErrorMessage(error) });
+    }
+};
+
+export const deleteUserController = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+        
+        const firstAdmin = await prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            orderBy: { createdAt: 'asc' }
+        });
+
+        if (firstAdmin && firstAdmin.id === id) {
+            res.status(400).json({ error: "O primeiro administrador (Dono) não pode ser removido do sistema." });
+            return;
+        }
+
+        await prisma.user.delete({
+            where: { id }
+        });
+        
+        res.status(200).json({ message: "Conta removida com sucesso." });
+    } catch (error) {
+        console.error("Erro ao apagar conta:", error);
+        res.status(500).json({ error: getErrorMessage(error) });
+    }
+};
+
+export const transferOwnershipController = async (req: Request, res: Response) => {
+    try {
+        const newOwnerId = req.params.id as string;
+        
+        const firstAdmin = await prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            orderBy: { createdAt: 'asc' }
+        });
+
+        if (!firstAdmin) {
+            res.status(400).json({ error: "Dono atual não encontrado." });
+            return;
+        }
+
+        const newOwner = await prisma.user.findUnique({
+            where: { id: newOwnerId }
+        });
+
+        if (!newOwner) {
+            res.status(404).json({ error: "Nova conta não encontrada." });
+            return;
+        }
+
+        if (firstAdmin.id === newOwnerId) {
+            res.status(400).json({ error: "Você já é o Dono do sistema." });
+            return;
+        }
+
+        // Alteramos a data de criação do novo dono para 1 segundo antes do dono atual.
+        // Isso fará com que a query `orderBy: { createdAt: 'asc' }` o escolha.
+        const olderDate = new Date(firstAdmin.createdAt.getTime() - 1000);
+        
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: newOwnerId },
+                data: { createdAt: olderDate, role: 'ADMIN' }
+            }),
+            prisma.user.update({
+                where: { id: firstAdmin.id },
+                data: { createdAt: new Date() }
+            })
+        ]);
+
+        res.status(200).json({ message: "Posse transferida com sucesso. Você não é mais o Dono." });
+    } catch (error) {
+        console.error("Erro ao transferir posse:", error);
         res.status(500).json({ error: getErrorMessage(error) });
     }
 };

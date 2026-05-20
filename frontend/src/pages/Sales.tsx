@@ -3,13 +3,14 @@ import { useSales } from '../hooks/useSales';
 import { useBatches } from '../hooks/useBatches';
 import { CreateSaleModal } from '../components/Sales/CreateSaleModal';
 import { DeleteConfirmModal } from '../components/Finance/DeleteConfirmModal';
-import { ShoppingCart, Clock, Trash2 } from 'lucide-react';
+import { ShoppingCart, Clock, Trash2, PackageCheck, CalendarClock } from 'lucide-react';
 import type { Sale } from '../@types';
 
 export function Sales() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saleToRevert, setSaleToRevert] = useState<Sale | null>(null);
-  const { customers, createSale, revertSale, recentSales, isLoadingSales, isReverting } = useSales();
+  const [saleToDeliver, setSaleToDeliver] = useState<Sale | null>(null);
+  const { customers, createSale, revertSale, deliverSale, recentSales, isLoadingSales, isReverting, isDelivering } = useSales();
   const { batches } = useBatches();
 
   return (
@@ -55,6 +56,15 @@ export function Sales() {
                         Pago
                       </span>
                     )}
+                    
+                    {sale.isScheduled && (
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase flex items-center gap-1 mt-2 ${
+                        sale.scheduledStatus === 'PENDING' ? 'bg-blue-500/20 text-blue-500' : 'bg-emerald-500/20 text-emerald-500'
+                      }`}>
+                        <CalendarClock size={12} />
+                        {sale.scheduledStatus === 'PENDING' ? 'Agendada' : 'Entregue'}
+                      </span>
+                    )}
                   </div>
                   <div className="flex justify-between items-center bg-secondary/40 p-3 rounded-lg border border-border/50">
                     <div>
@@ -66,6 +76,17 @@ export function Sales() {
                         <p className="text-[10px] text-muted uppercase font-bold tracking-wider">Total</p>
                         <p className="text-sm font-black text-primary">MZN {sale.totalValue.toLocaleString()}</p>
                       </div>
+                      
+                      {sale.isScheduled && sale.scheduledStatus === 'PENDING' && (
+                        <button
+                          onClick={() => setSaleToDeliver(sale)}
+                          className="p-2 text-muted hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
+                          title="Confirmar Entrega"
+                        >
+                          <PackageCheck size={16} />
+                        </button>
+                      )}
+
                       <button
                         onClick={() => setSaleToRevert(sale)}
                         className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
@@ -102,27 +123,49 @@ export function Sales() {
                       <td className="p-4 text-foreground">{sale.quantity} aves</td>
                       <td className="p-4 font-bold text-primary">MZN {sale.totalValue.toLocaleString()}</td>
                       <td className="p-4">
-                        {sale.balance > 0 ? (
-                          <div className="flex flex-col gap-1">
-                            <span className="bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded text-[10px] font-bold uppercase flex items-center w-fit gap-1">
-                              <Clock size={12} /> Parcial
+                        <div className="flex flex-col gap-2">
+                          {sale.balance > 0 ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded text-[10px] font-bold uppercase flex items-center w-fit gap-1">
+                                <Clock size={12} /> Parcial
+                              </span>
+                              <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded uppercase w-fit">Dívida: {sale.balance.toLocaleString()}</span>
+                            </div>
+                          ) : (
+                            <span className="bg-green-500/20 text-green-500 px-2 py-1 rounded text-[10px] font-bold uppercase flex items-center w-fit gap-1">
+                              Pago
                             </span>
-                            <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded uppercase w-fit">Dívida: {sale.balance.toLocaleString()}</span>
-                          </div>
-                        ) : (
-                          <span className="bg-green-500/20 text-green-500 px-2 py-1 rounded text-[10px] font-bold uppercase flex items-center w-fit gap-1">
-                            Pago
-                          </span>
-                        )}
+                          )}
+
+                          {sale.isScheduled && (
+                            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase flex items-center w-fit gap-1 ${
+                              sale.scheduledStatus === 'PENDING' ? 'bg-blue-500/20 text-blue-500' : 'bg-emerald-500/20 text-emerald-500'
+                            }`}>
+                              <CalendarClock size={12} />
+                              {sale.scheduledStatus === 'PENDING' ? 'Agendada' : 'Entregue'}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 text-center">
-                        <button
-                          onClick={() => setSaleToRevert(sale)}
-                          className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                          title="Reverter Venda"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex justify-center gap-2">
+                          {sale.isScheduled && sale.scheduledStatus === 'PENDING' && (
+                            <button
+                              onClick={() => setSaleToDeliver(sale)}
+                              className="p-2 text-muted hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
+                              title="Confirmar Entrega"
+                            >
+                              <PackageCheck size={16} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setSaleToRevert(sale)}
+                            className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                            title="Reverter Venda"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -155,9 +198,26 @@ export function Sales() {
         }}
         isLoading={isReverting}
         title="Reverter Venda?"
-        description="Esta ação irá cancelar a venda, excluir os pagamentos associados e RESTAURAR a quantidade exata de aves de volta ao estoque do lote original."
+        description="Esta ação irá cancelar a venda, excluir os pagamentos associados e RESTAURAR a quantidade exata de aves de volta ao stock do lote original."
         itemName={saleToRevert ? `Venda para ${saleToRevert.customerName || 'Cliente'}` : undefined}
         itemValue={saleToRevert ? `MZN ${saleToRevert.totalValue.toLocaleString()}` : undefined}
+      />
+
+      <DeleteConfirmModal
+        isOpen={saleToDeliver !== null}
+        onClose={() => setSaleToDeliver(null)}
+        onConfirm={async () => {
+          if (saleToDeliver) {
+            await deliverSale(saleToDeliver.id);
+            setSaleToDeliver(null);
+          }
+        }}
+        isLoading={isDelivering}
+        title="Confirmar Entrega?"
+        description="Isto irá confirmar que as aves foram entregues ao cliente e deduzirá a quantidade do lote no stock. Esta ação não pode ser desfeita facilmente."
+        itemName={saleToDeliver ? `Venda para ${saleToDeliver.customerName || 'Cliente'}` : undefined}
+        itemValue={saleToDeliver ? `${saleToDeliver.quantity} aves (MZN ${saleToDeliver.totalValue.toLocaleString()})` : undefined}
+        confirmText="Sim, Entregue!"
       />
     </div>
   );

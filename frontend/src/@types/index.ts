@@ -42,6 +42,10 @@ export interface Sale {
   balance: number;
   status: PaymentStatus;
   date: string;
+  isScheduled: boolean;
+  scheduledDeliveryDate?: string;
+  scheduledStatus?: 'PENDING' | 'DELIVERED';
+  debtDueDate?: string;
 }
 
 export interface Customer {
@@ -67,6 +71,9 @@ export interface SaleCreateInput {
   unitPrice: number;
   amountPaid: number;
   date?: string;
+  isScheduled?: boolean;
+  scheduledDeliveryDate?: string;
+  debtDueDate?: string;
 }
 
 export interface LossCreateInput {

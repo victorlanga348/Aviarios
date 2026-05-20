@@ -124,7 +124,7 @@ export function LossHistoryModal({ isOpen, onClose, batch, onUndo, isUndoing }: 
         }}
         isLoading={isUndoing}
         title="Reverter Registro de Morte?"
-        description="Esta ação irá cancelar o registro do óbito e restaurar a quantidade exata de aves vivas de volta ao estoque deste lote imediatamente."
+        description="Esta ação irá cancelar o registro do óbito e restaurar a quantidade exata de aves vivas de volta ao stock deste lote imediatamente."
         itemName={selectedLossToUndo ? `Registro de Baixa - Lote ${batch.name}` : undefined}
         itemValue={selectedLossToUndo ? `${selectedLossToUndo.quantity} aves` : undefined}
       />

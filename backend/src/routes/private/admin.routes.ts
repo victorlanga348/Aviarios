@@ -4,7 +4,9 @@ import { adminMiddleware } from '../../middlewares/admin.js';
 import { 
     listAllUsersController, 
     getAdminStatsController, 
-    updateUserRoleController 
+    updateUserRoleController,
+    deleteUserController,
+    transferOwnershipController
 } from '../../controllers/adminController.js';
 
 const router = Router();
@@ -13,5 +15,7 @@ const router = Router();
 router.get('/users', authMiddleware, adminMiddleware, listAllUsersController);
 router.get('/stats', authMiddleware, adminMiddleware, getAdminStatsController);
 router.patch('/users/:id/role', authMiddleware, adminMiddleware, updateUserRoleController);
+router.delete('/users/:id', authMiddleware, adminMiddleware, deleteUserController);
+router.post('/users/:id/transfer-ownership', authMiddleware, adminMiddleware, transferOwnershipController);
 
 export default router;

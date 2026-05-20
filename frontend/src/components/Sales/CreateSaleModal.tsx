@@ -123,6 +123,19 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
                     <input type="number" step="0.01" placeholder="0.00" {...register('unitPrice', { valueAsNumber: true })} onFocus={(e) => e.target.select()} className="w-full bg-background border border-border p-3 rounded-lg" />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 bg-background border border-border p-3 rounded-lg h-[46px] self-end">
+                    <input type="checkbox" {...register('isScheduled')} id="isScheduled" className="w-4 h-4 accent-primary rounded cursor-pointer" />
+                    <label htmlFor="isScheduled" className="text-xs text-foreground uppercase font-bold cursor-pointer">Agendar Entrega?</label>
+                  </div>
+                  {watch('isScheduled') ? (
+                    <div>
+                      <label className="text-xs text-muted uppercase">Data da Entrega</label>
+                      <input type="date" {...register('scheduledDeliveryDate')} className="w-full bg-background border border-border p-3 rounded-lg outline-none focus:border-primary" required={watch('isScheduled')} />
+                    </div>
+                  ) : <div></div>}
+                </div>
               </div>
 
               <div className="bg-background/50 p-6 rounded-xl border border-border flex flex-col justify-between">
@@ -141,10 +154,24 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
                     <span className="text-red-500 text-sm">Dívida (Fiado):</span>
                     <span className="text-red-500 font-bold">MZN {balance > 0 ? balance.toFixed(2) : '0.00'}</span>
                   </div>
+
+                  <AnimatePresence>
+                    {balance > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }} 
+                        animate={{ opacity: 1, height: 'auto' }} 
+                        exit={{ opacity: 0, height: 0 }}
+                        className="pt-2"
+                      >
+                        <label className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 mb-1 block">Data Limite Pagamento (Cobrança)</label>
+                        <input type="date" {...register('debtDueDate')} className="w-full bg-background border border-red-500/30 p-3 rounded-lg outline-none focus:border-red-500/80 text-sm" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
-                <button type="submit" className="w-full bg-primary hover:bg-secondary text-white font-bold py-4 rounded-lg shadow-lg shadow-primary/20 transition mt-4">
-                  Finalizar Venda
+                <button type="submit" className="w-full bg-primary hover:bg-emerald-500 text-black font-black py-4 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] mt-6">
+                  {watch('isScheduled') ? 'Registrar e Agendar Entrega' : 'Finalizar Venda'}
                 </button>
               </div>
             </form>

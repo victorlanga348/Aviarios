@@ -14,6 +14,7 @@ import configRoutes from './routes/private/config.routes.js';
 import reportRoutes from './routes/private/report.routes.js';
 import batchExpenseRoutes from './routes/private/batchExpense.routes.js';
 import adminRoutes from './routes/private/admin.routes.js';
+import profileRoutes from './routes/private/profile.routes.js';
 import maintenanceRoutes from './routes/public/maintenance.routes.js';
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/api/config', configRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/batch-expenses', batchExpenseRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 
 // Middleware de Erro Global

@@ -17,7 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
-  BookOpen
+  BookOpen,
+  User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -58,6 +59,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     { path: '/finance', label: 'Financeiro', icon: Zap },
     { path: '/reports', label: 'Relatórios', icon: History },
     { path: '/guide', label: 'Manual', icon: BookOpen },
+    { path: '/perfil', label: 'Perfil', icon: User },
     ...(user?.role === 'ADMIN' ? [{ path: '/admin', label: 'Painel Admin', icon: ShieldAlert }] : []),
   ];
 
@@ -83,9 +85,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <header className="md:hidden flex items-center justify-between p-4 border-b border-border bg-card z-50 fixed top-0 left-0 right-0 shadow-sm">
         <h1 className="text-primary font-black italic tracking-tighter">AVIÁRIO PRO</h1>
         <div className="flex items-center gap-3">
-          <button onClick={toggleTheme} className="p-2 text-muted hover:text-foreground transition-colors">
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-muted hover:text-foreground transition-colors">
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -139,28 +139,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
 
-            <div className="mt-auto pt-6 border-t border-border space-y-4">
-              <button 
-                onClick={toggleTheme}
-                className="hidden md:flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold text-muted hover:bg-secondary/50 hover:text-foreground transition-all"
-              >
-                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                <span className="text-sm">Alternar Tema</span>
-              </button>
 
-              <div className="flex items-center gap-4 px-4 py-3 bg-secondary rounded-2xl border border-border">
-                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-black border border-primary/30">
-                  {user?.name?.[0].toUpperCase()}
-                </div>
-                <div className="flex-grow overflow-hidden">
-                  <p className="text-xs font-black truncate">{user?.name}</p>
-                  <p className="text-[10px] text-muted truncate">{user?.email}</p>
-                </div>
-                <button onClick={signOut} className="p-2 text-foreground/70 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all">
-                  <LogOut size={18} />
-                </button>
-              </div>
-            </div>
           </motion.aside>
         )}
       </AnimatePresence>

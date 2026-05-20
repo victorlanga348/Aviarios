@@ -1,9 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Shield, ShieldAlert, ShieldCheck, Users, AlertTriangle, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Shield, ShieldAlert, ShieldCheck, Users, AlertTriangle, X, Clock, Calendar, Square, Save, Trash2, ArrowRightLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+
+interface MaintenanceConfig {
+  isActive: boolean;
+  estimatedTime: string;
+  scheduledStart: string | null;
+  durationHours: number | null;
+  leadTimeHours: number | null;
+}
 
 interface AdminStats {
   totalSalesValue: number;
@@ -15,6 +24,7 @@ interface AdminUser {
   email: string;
   role: string;
   totalChickens: number;
+  isFirstAdmin?: boolean;
   _count: {
     batches: number;
     sales: number;
@@ -25,6 +35,83 @@ export function Admin() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [roleModal, setRoleModal] = useState<{ isOpen: boolean; userId: string; userName: string; currentRole: string } | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; userId: string; userName: string } | null>(null);
+  const [transferModal, setTransferModal] = useState<{ isOpen: boolean; userId: string; userName: string } | null>(null);
+
+  // Maintenance Settings
+  const [mConfig, setMConfig] = useState<MaintenanceConfig>({
+    isActive: false,
+    estimatedTime: '',
+    scheduledStart: null,
+    durationHours: null,
+    leadTimeHours: null,
+  });
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [loadingMaintenance, setLoadingMaintenance] = useState(false);
+
+  useEffect(() => {
+    fetchMaintenanceConfig();
+  }, []);
+
+  const fetchMaintenanceConfig = async () => {
+    try {
+      const response = await api.get('/maintenance');
+      if (response.data?.maintenance) {
+        const m = response.data.maintenance;
+        setMConfig({
+          isActive: m.isActive || false,
+          estimatedTime: m.estimatedTime || '',
+          scheduledStart: m.scheduledStart ? new Date(m.scheduledStart).toISOString().slice(0, 16) : null,
+          durationHours: m.durationHours || null,
+          leadTimeHours: m.leadTimeHours || null,
+        });
+        setIsScheduled(!!m.scheduledStart);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar config de manutenção:', error);
+    }
+  };
+
+  const handleSaveMaintenance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingMaintenance(true);
+    try {
+      const payload = {
+        isActive: mConfig.isActive,
+        estimatedTime: mConfig.estimatedTime,
+        scheduledStart: isScheduled ? mConfig.scheduledStart : null,
+        durationHours: isScheduled ? mConfig.durationHours : null,
+        leadTimeHours: isScheduled ? mConfig.leadTimeHours : null,
+      };
+
+      await api.post('/maintenance', payload);
+      toast.success('Configurações de manutenção salvas!');
+      fetchMaintenanceConfig();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao salvar configurações.');
+    } finally {
+      setLoadingMaintenance(false);
+    }
+  };
+
+  const handleImmediateStop = async () => {
+    setLoadingMaintenance(true);
+    try {
+      await api.post('/maintenance', {
+        isActive: false,
+        estimatedTime: '',
+        scheduledStart: null,
+        durationHours: null,
+        leadTimeHours: null,
+      });
+      toast.success('Manutenção encerrada!');
+      fetchMaintenanceConfig();
+    } catch (error: any) {
+      toast.error('Erro ao parar manutenção.');
+    } finally {
+      setLoadingMaintenance(false);
+    }
+  };
 
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ['admin-stats'],
@@ -58,6 +145,36 @@ export function Admin() {
     }
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.delete(`/admin/users/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Conta removida com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Erro ao remover conta.');
+    }
+  });
+
+  const transferOwnershipMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.post(`/admin/users/${id}/transfer-ownership`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      // Reload page to reflect lost ownership status in UI fully
+      setTimeout(() => window.location.reload(), 1500);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Erro ao transferir posse.');
+    }
+  });
+
   const handleRoleToggle = (userId: string, userName: string, currentRole: string) => {
     setRoleModal({ isOpen: true, userId, userName, currentRole });
   };
@@ -67,6 +184,20 @@ export function Admin() {
     const newRole = roleModal.currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
     updateRoleMutation.mutate({ id: roleModal.userId, role: newRole }, {
       onSuccess: () => setRoleModal(null)
+    });
+  };
+
+  const confirmDeleteUser = () => {
+    if (!deleteModal) return;
+    deleteUserMutation.mutate(deleteModal.userId, {
+      onSuccess: () => setDeleteModal(null)
+    });
+  };
+
+  const confirmTransferOwnership = () => {
+    if (!transferModal) return;
+    transferOwnershipMutation.mutate(transferModal.userId, {
+      onSuccess: () => setTransferModal(null)
     });
   };
 
@@ -124,6 +255,146 @@ export function Admin() {
             </>
           )}
         </div>
+
+        </div>
+
+
+      {/* Maintenance Config Card */}
+      <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
+            <AlertTriangle className="text-amber-500" size={20} />
+            Controle de Manutenção
+          </h3>
+          {mConfig.isActive && (
+            <span className="bg-red-500/25 text-red-500 border border-red-500/40 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider animate-pulse">
+              Em Manutenção
+            </span>
+          )}
+        </div>
+
+        <form onSubmit={handleSaveMaintenance} className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 p-4 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between">
+              <div className="space-y-1">
+                <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isActive">
+                  Manutenção Imediata
+                </label>
+                <span className="text-xs text-muted block">Bloqueia o acesso de todos os usuários comuns agora</span>
+              </div>
+              <input 
+                type="checkbox" 
+                id="isActive"
+                checked={mConfig.isActive}
+                onChange={(e) => setMConfig(prev => ({ ...prev, isActive: e.target.checked }))}
+                className="w-5 h-5 accent-primary rounded cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tempo Estimado</label>
+              <div className="relative">
+                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                <input 
+                  type="text"
+                  placeholder="Ex: 2 horas, 45 minutos"
+                  value={mConfig.estimatedTime}
+                  onChange={(e) => setMConfig(prev => ({ ...prev, estimatedTime: e.target.value }))}
+                  className="w-full bg-secondary border border-border p-4 pl-12 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between self-end h-[58px]">
+              <div className="space-y-1">
+                <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isScheduled">
+                  Agendar Manutenção Futura
+                </label>
+              </div>
+              <input 
+                type="checkbox" 
+                id="isScheduled"
+                checked={isScheduled}
+                onChange={(e) => setIsScheduled(e.target.checked)}
+                className="w-5 h-5 accent-primary rounded cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {isScheduled && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2"
+            >
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Início da Manutenção</label>
+                <div className="relative">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                  <input 
+                    type="datetime-local"
+                    value={mConfig.scheduledStart || ''}
+                    onChange={(e) => setMConfig(prev => ({ ...prev, scheduledStart: e.target.value }))}
+                    required={isScheduled}
+                    className="w-full bg-secondary border border-border p-4 pl-12 rounded-2xl outline-none focus:border-primary/50 text-foreground text-xs font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Duração (Horas)</label>
+                <input 
+                  type="number"
+                  step="0.5"
+                  min="0.5"
+                  placeholder="Ex: 2.5"
+                  value={mConfig.durationHours || ''}
+                  onChange={(e) => setMConfig(prev => ({ ...prev, durationHours: e.target.value ? Number(e.target.value) : null }))}
+                  required={isScheduled}
+                  className="w-full bg-secondary border border-border p-4 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Aviso Prévio (Horas)</label>
+                <input 
+                  type="number"
+                  min="1"
+                  placeholder="Ex: 24 (1 dia antes)"
+                  value={mConfig.leadTimeHours || ''}
+                  onChange={(e) => setMConfig(prev => ({ ...prev, leadTimeHours: e.target.value ? Number(e.target.value) : null }))}
+                  required={isScheduled}
+                  className="w-full bg-secondary border border-border p-4 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
+            {mConfig.isActive && (
+              <button 
+                type="button" 
+                onClick={handleImmediateStop}
+                disabled={loadingMaintenance}
+                className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+              >
+                <Square size={16} />
+                Parar Manutenção Imediatamente
+              </button>
+            )}
+            <button 
+              type="submit" 
+              disabled={loadingMaintenance}
+              className="flex-1 px-4 py-3 bg-primary hover:bg-emerald-500 text-black rounded-xl font-black flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+            >
+              <Save size={16} />
+              {loadingMaintenance ? 'Salvando...' : 'Salvar Configurações'}
+            </button>
+          </div>
+        </form>
       </div>
 
       <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
@@ -159,7 +430,16 @@ export function Admin() {
               ) : (
                 users?.map(u => (
                   <tr key={u.id} className="hover:bg-secondary/30 transition-colors">
-                    <td className="p-4">{u.name}</td>
+                    <td className="p-4 font-bold">
+                      <div className="flex items-center gap-2">
+                        <span>{u.name}</span>
+                        {u.isFirstAdmin && (
+                          <span className="bg-amber-500/25 text-amber-500 border border-amber-500/40 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
+                            Dono
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-4 text-muted text-sm">{u.email}</td>
                     <td className="p-4 text-center font-bold text-emerald-500">{u.totalChickens || 0}</td>
                     <td className="p-4 text-center">{u._count.batches}</td>
@@ -172,14 +452,37 @@ export function Admin() {
                       </span>
                     </td>
                     <td className="p-4 text-center">
-                      <button
-                        onClick={() => handleRoleToggle(u.id, u.name, u.role)}
-                        disabled={updateRoleMutation.isPending || u.id === user?.id}
-                        className="px-3 py-1.5 rounded-xl font-bold text-xs bg-secondary hover:bg-primary hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1 mx-auto"
-                      >
-                        <Shield size={14} />
-                        {u.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleRoleToggle(u.id, u.name, u.role)}
+                          disabled={updateRoleMutation.isPending || u.id === user?.id || u.isFirstAdmin}
+                          className="px-3 py-1.5 rounded-xl font-bold text-xs bg-secondary hover:bg-primary hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                          title={u.role === 'ADMIN' ? 'Rebaixar para Usuário' : 'Promover a Administrador'}
+                        >
+                          <Shield size={14} />
+                        </button>
+                        
+                        {/* Se o current user for o Dono, mostra a opção de transferir dono */}
+                        {users?.find(usr => usr.id === user?.id)?.isFirstAdmin && !u.isFirstAdmin && u.id !== user?.id && (
+                          <button
+                            onClick={() => setTransferModal({ isOpen: true, userId: u.id, userName: u.name })}
+                            disabled={transferOwnershipMutation.isPending}
+                            className="px-3 py-1.5 rounded-xl font-bold text-xs bg-secondary hover:bg-amber-500 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                            title="Tornar este usuário o novo Dono"
+                          >
+                            <ArrowRightLeft size={14} />
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => setDeleteModal({ isOpen: true, userId: u.id, userName: u.name })}
+                          disabled={deleteUserMutation.isPending || u.id === user?.id || u.isFirstAdmin}
+                          className="px-3 py-1.5 rounded-xl font-bold text-xs bg-secondary hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                          title="Remover Conta"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -199,7 +502,14 @@ export function Admin() {
               <div key={u.id} className="bg-secondary/20 border border-border rounded-2xl p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-bold text-foreground text-sm">{u.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-foreground text-sm">{u.name}</p>
+                      {u.isFirstAdmin && (
+                        <span className="bg-amber-500/25 text-amber-500 border border-amber-500/40 text-[8px] px-1.5 py-0.5 rounded-lg font-black uppercase">
+                          Dono
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
@@ -224,14 +534,34 @@ export function Admin() {
                   </div>
                 </div>
 
-                <div className="pt-1">
+                <div className="pt-1 flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleRoleToggle(u.id, u.name, u.role)}
+                      disabled={updateRoleMutation.isPending || u.id === user?.id || u.isFirstAdmin}
+                      className="flex-1 py-2.5 rounded-xl font-bold text-xs bg-secondary hover:bg-primary hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <Shield size={16} />
+                      {u.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
+                    </button>
+                    
+                    {users?.find(usr => usr.id === user?.id)?.isFirstAdmin && !u.isFirstAdmin && u.id !== user?.id && (
+                      <button
+                        onClick={() => setTransferModal({ isOpen: true, userId: u.id, userName: u.name })}
+                        disabled={transferOwnershipMutation.isPending}
+                        className="flex-1 py-2.5 rounded-xl font-bold text-xs bg-secondary hover:bg-amber-500 hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        title="Transferir Posse"
+                      >
+                        <ArrowRightLeft size={16} /> Dono
+                      </button>
+                    )}
+                  </div>
                   <button
-                    onClick={() => handleRoleToggle(u.id, u.name, u.role)}
-                    disabled={updateRoleMutation.isPending || u.id === user?.id}
-                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-secondary hover:bg-primary hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    onClick={() => setDeleteModal({ isOpen: true, userId: u.id, userName: u.name })}
+                    disabled={deleteUserMutation.isPending || u.id === user?.id || u.isFirstAdmin}
+                    className="w-full py-2.5 rounded-xl font-bold text-xs bg-secondary hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    <Shield size={16} />
-                    {u.role === 'ADMIN' ? 'Rebaixar para Usuário' : 'Promover a Administrador'}
+                    <Trash2 size={16} /> Excluir Conta
                   </button>
                 </div>
               </div>
@@ -297,6 +627,122 @@ export function Admin() {
                   className="flex-1 px-4 py-3 bg-primary rounded-xl font-black text-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                 >
                   {updateRoleMutation.isPending ? 'Aplicando...' : 'Sim, alterar permissão'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {deleteModal?.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteModal(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
+              
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center">
+                  <Trash2 size={24} />
+                </div>
+                <button 
+                  onClick={() => setDeleteModal(null)}
+                  className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <h3 className="text-xl font-black mb-2 text-foreground">Excluir Conta?</h3>
+              
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Você tem certeza que deseja excluir permanentemente o usuário <strong className="text-foreground">{deleteModal.userName}</strong>?
+                <br /><br />
+                Todos os lotes, registros de vendas e finanças associados a este usuário <strong>serão permanentemente apagados</strong> do banco de dados. Esta ação não pode ser desfeita.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => setDeleteModal(null)}
+                  className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmDeleteUser}
+                  disabled={deleteUserMutation.isPending}
+                  className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl font-black text-white shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {deleteUserMutation.isPending ? 'Excluindo...' : 'Sim, Excluir Conta'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {transferModal?.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setTransferModal(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
+              
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <ArrowRightLeft size={24} />
+                </div>
+                <button 
+                  onClick={() => setTransferModal(null)}
+                  className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <h3 className="text-xl font-black mb-2 text-foreground">Transferir Posse?</h3>
+              
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Você está transferindo a posse de <strong>Dono</strong> para <strong className="text-foreground">{transferModal.userName}</strong>.
+                <br /><br />
+                Isto significa que você passará a ser um administrador comum e o usuário <strong>{transferModal.userName}</strong> passará a ser o único a deter direitos inalteráveis e que poderá remover sua conta ou rebaixá-lo no futuro.
+                <br /><br />
+                Tem a certeza?
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => setTransferModal(null)}
+                  className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmTransferOwnership}
+                  disabled={transferOwnershipMutation.isPending}
+                  className="flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-600 rounded-xl font-black text-white shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {transferOwnershipMutation.isPending ? 'Transferindo...' : 'Sim, transferir Posse'}
                 </button>
               </div>
             </motion.div>

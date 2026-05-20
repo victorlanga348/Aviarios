@@ -32,6 +32,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  // Sincronização periódica do perfil
+  useEffect(() => {
+    const storagedToken = localStorage.getItem('@AviarioPro:token');
+    if (!user || !storagedToken) return;
+
+    const syncProfile = async () => {
+      try {
+        const response = await api.get('/profile/me');
+        const freshUser = response.data.user;
+        if (freshUser) {
+          if (freshUser.id === user.id && (freshUser.role !== user.role || freshUser.name !== user.name || freshUser.email !== user.email)) {
+            setUser(freshUser);
+            localStorage.setItem('@AviarioPro:user', JSON.stringify(freshUser));
+          }
+        }
+      } catch (err: any) {
+        console.error("Erro ao sincronizar perfil:", err);
+        if (err.response?.status === 401) {
+          signOut();
+        }
+      }
+    };
+
+    // Executa a primeira verificação após 1 segundo
+    const timeout = setTimeout(syncProfile, 1000);
+    const interval = setInterval(syncProfile, 15000);
+
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [user?.id]);
+
   async function signIn({ email, password }: SignInCredentials) {
     const response = await api.post('/login', { email, password });
 

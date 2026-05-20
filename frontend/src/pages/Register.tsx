@@ -21,6 +21,7 @@ export function Register() {
 
     try {
       await api.post('/register', { name, email, password });
+      localStorage.setItem('@AviarioPro:hasAccount', 'true');
       toast.success('Conta criada com sucesso! Faça login.');
       navigate('/login');
     } catch (err: unknown) {
@@ -33,15 +34,7 @@ export function Register() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Botão de voltar FIXO na tela. Garantia de 100% que não será cortado em telas pequenas */}
-      <button 
-        onClick={() => navigate('/')}
-        className="fixed top-4 left-4 sm:top-6 sm:left-6 inline-flex items-center gap-2 text-muted sm:hover:text-foreground transition-colors font-bold text-sm bg-card/80 backdrop-blur-md border border-border/50 px-4 py-2 rounded-xl z-[100] shadow-lg active:scale-95"
-      >
-        <ArrowLeft size={16} /> 
-        <span className="hidden sm:inline">Voltar para o início</span>
-        <span className="sm:hidden">Voltar</span>
-      </button>
+
 
       {/* Background Decor */}
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse"></div>

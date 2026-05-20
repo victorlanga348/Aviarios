@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import { AdminLayout } from '../components/layout/AdminLayout';
+import { MaintenanceBanner } from '../components/layout/MaintenanceBanner';
 import { Dashboard } from '../pages/Dashboard';
 import { Batches } from '../pages/Batches';
 import { Sales } from '../pages/Sales';
@@ -12,6 +13,7 @@ import { Register } from '../pages/Register';
 import { Landing } from '../pages/Landing';
 import { Admin } from '../pages/Admin';
 import { Guide } from '../pages/Guide';
+import { Perfil } from '../pages/Perfil';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -74,6 +76,7 @@ export function AppRoutes() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <MaintenanceBanner />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -87,6 +90,7 @@ export function AppRoutes() {
           <Route path="/finance" element={<UserRoute><MainLayout><Finance /></MainLayout></UserRoute>} />
           <Route path="/reports" element={<UserRoute><MainLayout><Reports /></MainLayout></UserRoute>} />
           <Route path="/guide" element={<UserRoute><MainLayout><Guide /></MainLayout></UserRoute>} />
+          <Route path="/perfil" element={<UserRoute><MainLayout><Perfil /></MainLayout></UserRoute>} />
           
           <Route path="/admin" element={<AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>} />
           

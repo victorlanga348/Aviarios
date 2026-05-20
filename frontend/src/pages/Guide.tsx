@@ -75,7 +75,7 @@ const guideSections = [
         </ul>
         <div className="p-3 bg-secondary/30 rounded-xl border border-border mt-2">
           <p className="font-bold text-foreground text-xs flex items-center gap-1"><Lightbulb size={14} className="text-amber-500"/> Dica de Ouro</p>
-          <p className="text-xs mt-1">Sempre crie um lote assim que os frangos chegarem no aviário para manter o estoque exato!</p>
+          <p className="text-xs mt-1">Sempre crie um lote assim que os frangos chegarem no aviário para manter o stock exato!</p>
         </div>
       </div>
     )
@@ -87,7 +87,7 @@ const guideSections = [
     color: 'bg-emerald-500/10 border-emerald-500/20',
     content: (
       <div className="space-y-3 text-sm text-muted-foreground">
-        <p>As vendas retiram frangos do seu estoque (Lotes ativos) e adicionam dinheiro ao seu Caixa.</p>
+        <p>As vendas retiram frangos do seu stock (Lotes ativos) e adicionam dinheiro ao seu Caixa.</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Venda à Vista:</strong> Na hora da venda, coloque o "Valor Pago" igual ao "Valor Total". O status ficará como <em>PAGO</em>.</li>
           <li><strong>Venda a Fiado:</strong> Se o cliente pagou apenas uma parte (ou nada), coloque apenas o valor que ele pagou em dinheiro. O sistema guardará o restante como dívida (<em>PENDENTE</em>).</li>
@@ -122,7 +122,7 @@ const guideSections = [
         <p>Infelizmente, mortes acontecem. Mas é crucial registrar cada perda no sistema.</p>
         <ul className="list-disc pl-5 space-y-1">
           <li>Vá até a aba de Lotes e clique em "Registrar Morte".</li>
-          <li>Isso vai subtrair o frango morto do seu estoque atual.</li>
+          <li>Isso vai subtrair o frango morto do seu stock atual.</li>
           <li>O sistema usa essa informação para calcular o seu <strong>Custo Real</strong>. Quando um frango morre, o dinheiro investido nele é "repassado" como prejuízo para os frangos vivos, diminuindo o seu lucro final. O Aviário Pro faz essa matemática complexa por você!</li>
         </ul>
       </div>

@@ -1,0 +1,133 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, Wrench, Clock, XCircle } from 'lucide-react';
+import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+
+interface MaintenanceStatus {
+  inMaintenance: boolean;
+  isAlertActive?: boolean;
+  estimatedTime?: string;
+  scheduledStart?: string;
+  durationHours?: number;
+}
+
+export function MaintenanceBanner() {
+  const [status, setStatus] = useState<MaintenanceStatus | null>(null);
+  const { user, signOut } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await api.get('/maintenance');
+        setStatus(response.data);
+      } catch (error) {
+        // Ignora erros na checagem
+      }
+    };
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 60000); // Checa a cada minuto
+
+    const handleMaintenanceEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setStatus(prev => ({
+        ...prev,
+        inMaintenance: true,
+        estimatedTime: customEvent.detail?.estimatedTime || prev?.estimatedTime
+      }));
+    };
+
+    window.addEventListener('maintenance_event', handleMaintenanceEvent);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('maintenance_event', handleMaintenanceEvent);
+    };
+  }, []);
+
+  if (!status) return null;
+
+  // Block screen for normal users if inMaintenance is true
+  if (status.inMaintenance && !isAdmin) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center p-6 text-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-card border border-border rounded-[2rem] p-8 shadow-2xl space-y-6 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl -mr-16 -mt-16"></div>
+          
+          <div className="mx-auto w-20 h-20 bg-amber-500/20 rounded-3xl flex items-center justify-center text-amber-500 border border-amber-500/30 animate-pulse">
+            <Wrench size={40} />
+          </div>
+          
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-foreground">SISTEMA EM MANUTENÇÃO</h1>
+            <p className="text-muted text-sm leading-relaxed">
+              O sistema está atualmente em manutenção para aplicar melhorias e garantir estabilidade. 
+              Por favor, aguarde o término.
+            </p>
+          </div>
+
+          <div className="bg-secondary/40 border border-border rounded-2xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Clock className="text-primary" size={20} />
+              <div className="text-left">
+                <p className="text-xs font-bold text-muted uppercase tracking-wider">Tempo Estimado</p>
+                <p className="font-bold text-foreground text-sm">{status.estimatedTime || 'Indeterminado'}</p>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            onClick={signOut}
+            className="w-full py-3 bg-secondary hover:bg-secondary/80 rounded-xl font-bold text-foreground transition-all flex items-center justify-center gap-2"
+          >
+            <XCircle size={18} />
+            Sair da Conta
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Warning Banner if alert is active or if in maintenance (and is admin)
+  if (status.isAlertActive || status.inMaintenance) {
+    return (
+      <AnimatePresence>
+        <motion.div 
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-0 left-0 right-0 z-[9000] bg-amber-500 text-black px-4 py-3 shadow-lg flex flex-col sm:flex-row items-center justify-center gap-3 text-sm font-bold border-b-4 border-amber-600"
+        >
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="animate-pulse" size={18} />
+            {status.inMaintenance ? (
+              <span>ATENÇÃO: O SISTEMA ESTÁ EM MANUTENÇÃO AGORA.</span>
+            ) : (
+              <span>AVISO DE MANUTENÇÃO PROGRAMADA:</span>
+            )}
+          </div>
+          
+          {!status.inMaintenance && status.scheduledStart && (
+            <span className="font-medium">
+              Início: {new Date(status.scheduledStart).toLocaleString('pt-MZ')} 
+              {status.durationHours && ` (Duração est.: ${status.durationHours}h)`}
+            </span>
+          )}
+          
+          {status.inMaintenance && isAdmin && (
+            <span className="bg-black/20 px-2 py-0.5 rounded text-xs">
+              Você está acessando como Admin
+            </span>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  return null;
+}

@@ -95,7 +95,7 @@ export function RegisterLossModal({ isOpen, onClose, onSubmit, isLoading, batch 
           <div className="p-4 bg-amber-500/10 text-amber-500 text-xs rounded-2xl border border-amber-500/20 flex gap-3 leading-relaxed">
             <AlertTriangle size={20} className="shrink-0 text-amber-500 mt-0.5" />
             <div>
-              <p className="font-bold">Atenção ao estoque físico!</p>
+              <p className="font-bold">Atenção ao stock físico!</p>
               <p className="text-amber-500/90 mt-1">
                 Registrar mortes deduzirá **imediatamente** o saldo de aves vivas do lote. Esta operação é permanente e serve para manter o controle sanitário e de mortalidade preciso.
               </p>

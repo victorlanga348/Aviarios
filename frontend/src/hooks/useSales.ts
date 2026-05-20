@@ -46,12 +46,26 @@ export function useSales() {
       await api.delete(`/sales/${saleId}`);
     },
     onSuccess: () => {
-      toast.success('Venda revertida e estoque restaurado com sucesso!');
+      toast.success('Venda revertida e stock restaurado com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['batches'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['customers-with-debt'] });
+      queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
+    },
+  });
+
+  // Confirmar Entrega de Venda Agendada
+  const deliverSaleMutation = useMutation({
+    mutationFn: async (saleId: string) => {
+      await api.post(`/sales/${saleId}/deliver`);
+    },
+    onSuccess: () => {
+      toast.success('Entrega confirmada e stock atualizado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['report-monthly'] });
     },
   });
@@ -63,7 +77,9 @@ export function useSales() {
     isLoadingCustomers: customersQuery.isLoading,
     createSale: createSaleMutation.mutateAsync,
     revertSale: deleteSaleMutation.mutateAsync,
+    deliverSale: deliverSaleMutation.mutateAsync,
     isCreating: createSaleMutation.isPending,
-    isReverting: deleteSaleMutation.isPending
+    isReverting: deleteSaleMutation.isPending,
+    isDelivering: deliverSaleMutation.isPending
   };
 }

@@ -4,12 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void;
   isLoading?: boolean;
   title: string;
   description: string;
   itemName?: string;
   itemValue?: string;
+  /** Optional custom text for the confirm button */
+  confirmText?: string;
 }
 
 export function DeleteConfirmModal({ 
@@ -20,7 +22,8 @@ export function DeleteConfirmModal({
   title, 
   description, 
   itemName, 
-  itemValue 
+  itemValue, 
+  confirmText = "Confirmar"
 }: Props) {
   return (
     <AnimatePresence>
@@ -108,7 +111,7 @@ export function DeleteConfirmModal({
                 ) : (
                   <>
                     <Trash2 size={16} />
-                    <span>Confirmar</span>
+                    <span>{confirmText}</span>
                   </>
                 )}
               </button>

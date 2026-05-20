@@ -99,35 +99,44 @@ export function CustomerDetailsModal({ isOpen, onClose, clientId, clientName }: 
                       {sale.balance > 0 && (
                         <div className="mt-2 border-t border-border pt-3">
                           {payingSaleId === sale.id ? (
-                            <form onSubmit={handleSubmit(onPay)} className="flex gap-2">
-                              <input 
-                                type="number" 
-                                step="0.01" 
-                                placeholder="Valor"
-                                max={sale.balance}
-                                {...register('amount', { valueAsNumber: true, min: 1, max: sale.balance })}
-                                className="w-full bg-background border border-border px-3 py-2 rounded-lg text-base outline-none focus:border-primary transition-colors text-foreground" 
-                                autoFocus
-                              />
-                              <button 
-                                type="submit" 
-                                disabled={isPaying}
-                                className="bg-primary hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-base font-bold transition-colors"
-                              >
-                                Salvar
-                              </button>
-                              <button 
-                                type="button" 
-                                onClick={() => setPayingSaleId(null)}
-                                className="bg-secondary hover:bg-secondary/80 text-foreground px-3 py-2 rounded-lg text-base transition-colors border border-border"
-                              >
-                                Cancelar
-                              </button>
+                            <form onSubmit={handleSubmit(onPay)} className="flex flex-col gap-3 mt-1">
+                              <div>
+                                <label className="text-[10px] text-muted font-bold uppercase tracking-widest block mb-1 ml-1">Valor do Pagamento</label>
+                                <div className="relative">
+                                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted font-bold text-sm">MZN</span>
+                                  <input 
+                                    type="number" 
+                                    step="0.01" 
+                                    placeholder="0.00"
+                                    max={sale.balance}
+                                    {...register('amount', { valueAsNumber: true, min: 1, max: sale.balance })}
+                                    className="w-full pl-14 pr-4 py-3 bg-background border border-border rounded-xl text-lg font-black outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground" 
+                                    autoFocus
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button 
+                                  type="submit" 
+                                  disabled={isPaying}
+                                  className="flex-1 bg-primary hover:bg-emerald-500 text-black py-3 rounded-xl text-sm font-black transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-50"
+                                >
+                                  Confirmar Recebimento
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={() => setPayingSaleId(null)}
+                                  className="bg-secondary hover:bg-secondary/80 text-foreground px-4 py-3 rounded-xl text-sm font-bold transition-all border border-border active:scale-95"
+                                  title="Cancelar"
+                                >
+                                  <X size={20} />
+                                </button>
+                              </div>
                             </form>
                           ) : (
                             <button 
                               onClick={() => setPayingSaleId(sale.id)}
-                              className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground py-2 rounded-lg text-base font-medium transition-colors border border-border"
+                              className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground py-3 rounded-xl text-sm font-bold transition-all border border-border active:scale-[0.98]"
                             >
                               <DollarSign size={16}/> Receber Pagamento
                             </button>

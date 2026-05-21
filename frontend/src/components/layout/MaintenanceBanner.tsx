@@ -96,35 +96,54 @@ export function MaintenanceBanner() {
 
   // Warning Banner if alert is active or if in maintenance (and is admin)
   if (status.isAlertActive || status.inMaintenance) {
+    // Check if admin has dismissed the banner
+    const dismissed = typeof window !== 'undefined' && localStorage.getItem('adminMaintenanceBannerDismissed') === 'true';
+    if (isAdmin && dismissed) {
+      return null;
+    }
     return (
       <AnimatePresence>
-        <motion.div 
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-0 left-0 right-0 z-[9000] bg-amber-500 text-black px-4 py-3 shadow-lg flex flex-col sm:flex-row items-center justify-center gap-3 text-sm font-bold border-b-4 border-amber-600"
-        >
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="animate-pulse" size={18} />
-            {status.inMaintenance ? (
-              <span>ATENÇÃO: O SISTEMA ESTÁ EM MANUTENÇÃO AGORA.</span>
-            ) : (
-              <span>AVISO DE MANUTENÇÃO PROGRAMADA:</span>
+        <div className="fixed top-4 left-0 right-0 z-[9000] flex justify-center pointer-events-none px-4">
+          <motion.div 
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="pointer-events-auto bg-amber-500 text-black px-6 py-2.5 shadow-2xl flex flex-col sm:flex-row items-center justify-center gap-3 text-sm font-bold rounded-full border border-amber-600/50">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="animate-pulse" size={18} />
+              {status.inMaintenance ? (
+                <span>ATENÇÃO: O SISTEMA ESTÁ EM MANUTENÇÃO AGORA.</span>
+              ) : (
+                <span>AVISO DE MANUTENÇÃO PROGRAMADA:</span>
+              )}
+            </div>
+            
+            {!status.inMaintenance && status.scheduledStart && (
+              <span className="font-medium">
+                Início: {new Date(status.scheduledStart).toLocaleString('pt-MZ')} 
+                {status.durationHours && ` (Duração est.: ${status.durationHours}h)`}
+              </span>
             )}
-          </div>
-          
-          {!status.inMaintenance && status.scheduledStart && (
-            <span className="font-medium">
-              Início: {new Date(status.scheduledStart).toLocaleString('pt-MZ')} 
-              {status.durationHours && ` (Duração est.: ${status.durationHours}h)`}
-            </span>
-          )}
-          
-          {status.inMaintenance && isAdmin && (
-            <span className="bg-black/20 px-2 py-0.5 rounded text-xs">
-              Você está acessando como Admin
-            </span>
-          )}
-        </motion.div>
+            
+            {status.inMaintenance && isAdmin && (
+              <span className="bg-black/20 px-2 py-0.5 rounded text-xs">
+                Você está acessando como Admin
+              </span>
+            )}
+            
+            {/* Dismiss button for admins */}
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  localStorage.setItem('adminMaintenanceBannerDismissed', 'true');
+                }}
+                className="ml-2 text-black hover:text-gray-800"
+                aria-label="Dismiss maintenance banner"
+              >
+                ✕
+              </button>
+            )}
+          </motion.div>
+        </div>
       </AnimatePresence>
     );
   }

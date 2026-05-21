@@ -77,17 +77,22 @@ export const updateUserRoleController = async (req: Request, res: Response) => {
             return;
         }
 
-        // Se o novo papel for USER, verifica se o usuário é o primeiro administrador cadastrado
+        // Se o novo papel for USER, verifica se é o dono do sistema
         if (role === 'USER') {
-            const firstAdmin = await prisma.user.findFirst({
-                where: { role: 'ADMIN' },
-                orderBy: { createdAt: 'asc' }
-            });
-
-            if (firstAdmin && firstAdmin.id === id) {
-                res.status(400).json({ error: "O primeiro administrador do sistema não pode ser destituído do cargo de ADMIN." });
-                return;
-            }
+          const ownerId = process.env.OWNER_ID;
+          if (ownerId && ownerId === id) {
+            res.status(400).json({ error: "O dono do sistema não pode ser destituído do cargo de ADMIN." });
+            return;
+          }
+          // Mantém verificação para o primeiro admin antigo (caso ainda exista)
+          const firstAdmin = await prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            orderBy: { createdAt: 'asc' }
+          });
+          if (firstAdmin && firstAdmin.id === id) {
+            res.status(400).json({ error: "O primeiro administrador do sistema não pode ser destituído do cargo de ADMIN." });
+            return;
+          }
         }
         
         const user = await prisma.user.update({
@@ -109,14 +114,20 @@ export const deleteUserController = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string;
         
+        // Impede remoção do dono do sistema
+        const ownerId = process.env.OWNER_ID;
+        if (ownerId && ownerId === id) {
+          res.status(400).json({ error: "O dono do sistema não pode ser removido." });
+          return;
+        }
+        // Mantém verificação para o primeiro admin antigo (caso ainda exista)
         const firstAdmin = await prisma.user.findFirst({
-            where: { role: 'ADMIN' },
-            orderBy: { createdAt: 'asc' }
+          where: { role: 'ADMIN' },
+          orderBy: { createdAt: 'asc' }
         });
-
         if (firstAdmin && firstAdmin.id === id) {
-            res.status(400).json({ error: "O primeiro administrador (Dono) não pode ser removido do sistema." });
-            return;
+          res.status(400).json({ error: "O primeiro administrador (Dono) não pode ser removido do sistema." });
+          return;
         }
 
         await prisma.user.delete({

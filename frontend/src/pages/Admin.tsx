@@ -255,8 +255,7 @@ export function Admin() {
             </>
           )}
         </div>
-
-        </div>
+      </div>
 
 
       {/* Maintenance Config Card */}
@@ -282,8 +281,8 @@ export function Admin() {
                 </label>
                 <span className="text-xs text-muted block">Bloqueia o acesso de todos os usuários comuns agora</span>
               </div>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="isActive"
                 checked={mConfig.isActive}
                 onChange={(e) => setMConfig(prev => ({ ...prev, isActive: e.target.checked }))}
@@ -297,7 +296,7 @@ export function Admin() {
               <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tempo Estimado</label>
               <div className="relative">
                 <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                <input 
+                <input
                   type="text"
                   placeholder="Ex: 2 horas, 45 minutos"
                   value={mConfig.estimatedTime}
@@ -313,8 +312,8 @@ export function Admin() {
                   Agendar Manutenção Futura
                 </label>
               </div>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="isScheduled"
                 checked={isScheduled}
                 onChange={(e) => setIsScheduled(e.target.checked)}
@@ -324,7 +323,7 @@ export function Admin() {
           </div>
 
           {isScheduled && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -334,7 +333,7 @@ export function Admin() {
                 <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Início da Manutenção</label>
                 <div className="relative">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                  <input 
+                  <input
                     type="datetime-local"
                     value={mConfig.scheduledStart || ''}
                     onChange={(e) => setMConfig(prev => ({ ...prev, scheduledStart: e.target.value }))}
@@ -346,7 +345,7 @@ export function Admin() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Duração (Horas)</label>
-                <input 
+                <input
                   type="number"
                   step="0.5"
                   min="0.5"
@@ -360,7 +359,7 @@ export function Admin() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Aviso Prévio (Horas)</label>
-                <input 
+                <input
                   type="number"
                   min="1"
                   placeholder="Ex: 24 (1 dia antes)"
@@ -375,8 +374,8 @@ export function Admin() {
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
             {mConfig.isActive && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleImmediateStop}
                 disabled={loadingMaintenance}
                 className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
@@ -385,8 +384,8 @@ export function Admin() {
                 Parar Manutenção Imediatamente
               </button>
             )}
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loadingMaintenance}
               className="flex-1 px-4 py-3 bg-primary hover:bg-emerald-500 text-black rounded-xl font-black flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
             >
@@ -445,9 +444,8 @@ export function Admin() {
                     <td className="p-4 text-center">{u._count.batches}</td>
                     <td className="p-4 text-center">{u._count.sales}</td>
                     <td className="p-4 text-center">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                        u.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-lg text-xs font-bold ${u.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted'
+                        }`}>
                         {u.role}
                       </span>
                     </td>
@@ -461,7 +459,7 @@ export function Admin() {
                         >
                           <Shield size={14} />
                         </button>
-                        
+
                         {/* Se o current user for o Dono, mostra a opção de transferir dono */}
                         {users?.find(usr => usr.id === user?.id)?.isFirstAdmin && !u.isFirstAdmin && u.id !== user?.id && (
                           <button
@@ -512,13 +510,12 @@ export function Admin() {
                     </div>
                     <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
-                    u.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${u.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted'
+                    }`}>
                     {u.role}
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-2 py-3 border-y border-border/50">
                   <div className="text-center">
                     <p className="text-[10px] text-muted-foreground uppercase font-bold">Frangos</p>
@@ -544,7 +541,7 @@ export function Admin() {
                       <Shield size={16} />
                       {u.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
                     </button>
-                    
+
                     {users?.find(usr => usr.id === user?.id)?.isFirstAdmin && !u.isFirstAdmin && u.id !== user?.id && (
                       <button
                         onClick={() => setTransferModal({ isOpen: true, userId: u.id, userName: u.name })}
@@ -574,27 +571,27 @@ export function Admin() {
       <AnimatePresence>
         {roleModal?.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setRoleModal(null)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
-              
+
               <div className="flex justify-between items-start mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
                   <AlertTriangle size={24} />
                 </div>
-                <button 
+                <button
                   onClick={() => setRoleModal(null)}
                   className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
                 >
@@ -603,7 +600,7 @@ export function Admin() {
               </div>
 
               <h3 className="text-xl font-black mb-2 text-foreground">Atenção Necessária!</h3>
-              
+
               <p className="text-muted-foreground mb-6 leading-relaxed">
                 Você está prestes a mudar as permissões do usuário <strong className="text-foreground">{roleModal.userName}</strong>.
                 <br /><br />
@@ -615,13 +612,13 @@ export function Admin() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <button 
+                <button
                   onClick={() => setRoleModal(null)}
                   className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   onClick={confirmRoleChange}
                   disabled={updateRoleMutation.isPending}
                   className="flex-1 px-4 py-3 bg-primary rounded-xl font-black text-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
@@ -635,27 +632,27 @@ export function Admin() {
 
         {deleteModal?.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setDeleteModal(null)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
-              
+
               <div className="flex justify-between items-start mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center">
                   <Trash2 size={24} />
                 </div>
-                <button 
+                <button
                   onClick={() => setDeleteModal(null)}
                   className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
                 >
@@ -664,7 +661,7 @@ export function Admin() {
               </div>
 
               <h3 className="text-xl font-black mb-2 text-foreground">Excluir Conta?</h3>
-              
+
               <p className="text-muted-foreground mb-6 leading-relaxed">
                 Você tem certeza que deseja excluir permanentemente o usuário <strong className="text-foreground">{deleteModal.userName}</strong>?
                 <br /><br />
@@ -672,13 +669,13 @@ export function Admin() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <button 
+                <button
                   onClick={() => setDeleteModal(null)}
                   className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   onClick={confirmDeleteUser}
                   disabled={deleteUserMutation.isPending}
                   className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl font-black text-white shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
@@ -692,27 +689,27 @@ export function Admin() {
 
         {transferModal?.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setTransferModal(null)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
-              
+
               <div className="flex justify-between items-start mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
                   <ArrowRightLeft size={24} />
                 </div>
-                <button 
+                <button
                   onClick={() => setTransferModal(null)}
                   className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
                 >
@@ -721,7 +718,7 @@ export function Admin() {
               </div>
 
               <h3 className="text-xl font-black mb-2 text-foreground">Transferir Posse?</h3>
-              
+
               <p className="text-muted-foreground mb-6 leading-relaxed">
                 Você está transferindo a posse de <strong>Dono</strong> para <strong className="text-foreground">{transferModal.userName}</strong>.
                 <br /><br />
@@ -731,13 +728,13 @@ export function Admin() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <button 
+                <button
                   onClick={() => setTransferModal(null)}
                   className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   onClick={confirmTransferOwnership}
                   disabled={transferOwnershipMutation.isPending}
                   className="flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-600 rounded-xl font-black text-white shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"

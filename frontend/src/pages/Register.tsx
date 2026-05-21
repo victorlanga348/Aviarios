@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
-import { UserPlus, Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export function Register() {
   const [name, setName] = useState('');

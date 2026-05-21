@@ -1,17 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../lib/api';
-
 import { 
   User as UserIcon, 
-  Mail, 
-  Shield, 
   Moon, 
   Sun, 
   LogOut, 
   Settings
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export function Perfil() {
   const { user, signOut } = useAuth();

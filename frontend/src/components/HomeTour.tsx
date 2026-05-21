@@ -1,18 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, X, Sparkles, Shield, Mic, BarChart3, TrendingUp, Zap, Wallet, Loader2 } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-
-import { useUser } from '../context/userContext'
+import { ChevronRight, Sparkles, Shield, Mic, Zap, Wallet, Loader2 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 /**
  * HomeTour component – guided walkthrough highlighting UI elements.
  * Adjusted positioning logic ensures the tooltip/popup never covers the highlighted element.
  */
 const HomeTour = ({ onComplete }: { onComplete: () => Promise<void> }) => {
-  const { t } = useTranslation()
-  const { user } = useUser()
+  const t = (_key: string, defaultText: string) => defaultText
+  const { user } = useAuth()
   const [step, setStep] = useState(0)
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 })
   const [isFinishing, setIsFinishing] = useState(false)
@@ -27,7 +25,7 @@ const HomeTour = ({ onComplete }: { onComplete: () => Promise<void> }) => {
     {
       targetId: 'tour-seguranca',
       title: t('tour_seguranca_title', 'Dias de Segurança'),
-      content: user?.incomeType === 'VARIABLE'
+      content: (user as any)?.incomeType === 'VARIABLE'
         ? t('tour_seguranca_desc_variable', 'Este escudo indica quanto tempo as tuas reservas atuais garantem o teu estilo de vida. Mantém-no sempre verde!')
         : t('tour_seguranca_desc', 'Este escudo mostra a tua autonomia financeira. A linha branca indica o dia do teu salário — mantém a barra verde para chegar ao próximo pagamento com tranquilidade!'),
       icon: <Shield className="text-emerald-400" />

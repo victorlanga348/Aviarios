@@ -7,27 +7,24 @@ import {
   Package, 
   ShoppingCart, 
   Users, 
-  LogOut, 
   Menu, 
   X, 
   Zap,
   History,
-  Sun,
-  Moon,
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
   BookOpen,
-  User
-} from 'lucide-react';
+  User,
+ } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>(
+  const [theme] = useState<'dark' | 'light'>(
     () => (localStorage.getItem('@AviarioPro:theme') as 'dark' | 'light') || 'dark'
   );
-  const { signOut, user } = useAuth();
+  const { user } = useAuth();
   const { formattedDate, changeMonth } = useGlobalDate();
   const location = useLocation();
   const [prevIndex, setPrevIndex] = useState(0);
@@ -49,7 +46,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
-  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  
 
   const routes = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },

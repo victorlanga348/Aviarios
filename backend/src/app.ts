@@ -16,12 +16,16 @@ import batchExpenseRoutes from './routes/private/batchExpense.routes.js';
 import adminRoutes from './routes/private/admin.routes.js';
 import profileRoutes from './routes/private/profile.routes.js';
 import maintenanceRoutes from './routes/public/maintenance.routes.js';
+import { maintenanceMiddleware } from './middlewares/maintenance.js';
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
+
+// Middleware global de manutenção — bloqueia requisições de não-admins quando em manutenção
+app.use(maintenanceMiddleware);
 
 app.use('/api/register', registerRoutes);
 app.use('/api/login', loginRoutes);

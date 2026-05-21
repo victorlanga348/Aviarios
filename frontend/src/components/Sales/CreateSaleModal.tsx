@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { saleSchema, type SaleFormData } from '../../lib/validations/sale';
@@ -26,6 +27,22 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
       amountPaid: 0
     }
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        unitPrice: defaultUnitPrice,
+        quantity: 0,
+        amountPaid: 0,
+        isScheduled: false,
+        scheduledDeliveryDate: undefined,
+        debtDueDate: undefined,
+        customerId: '',
+        customerName: '',
+        customerPhone: ''
+      });
+    }
+  }, [isOpen, reset, defaultUnitPrice]);
 
   const handleFormSubmit = async (data: SaleFormData) => {
     // Salva o preço de venda atual para a próxima vez

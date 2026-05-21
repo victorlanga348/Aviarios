@@ -323,7 +323,7 @@ export function Finance() {
               <select
                 value={selectedBatchId}
                 onChange={(e) => setSelectedBatchId(e.target.value)}
-                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto"
+                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto min-w-[220px]"
               >
                 {batches.length === 0 ? (
                   <option value="">Nenhum Lote Encontrado</option>

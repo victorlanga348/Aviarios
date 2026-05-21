@@ -144,6 +144,12 @@ export const deleteUserController = async (req: Request, res: Response) => {
 export const transferOwnershipController = async (req: Request, res: Response) => {
     try {
         const newOwnerId = req.params.id as string;
+        const { password } = req.body;
+        
+        if (password !== 'adminpass3772') {
+            res.status(401).json({ error: "Palavra-passe de transferência de posse incorreta." });
+            return;
+        }
         
         const firstAdmin = await prisma.user.findFirst({
             where: { role: 'ADMIN' },

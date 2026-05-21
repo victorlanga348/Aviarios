@@ -37,6 +37,7 @@ export function Admin() {
   const [roleModal, setRoleModal] = useState<{ isOpen: boolean; userId: string; userName: string; currentRole: string } | null>(null);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; userId: string; userName: string } | null>(null);
   const [transferModal, setTransferModal] = useState<{ isOpen: boolean; userId: string; userName: string } | null>(null);
+  const [transferPassword, setTransferPassword] = useState('');
 
   // Maintenance Settings
   const [mConfig, setMConfig] = useState<MaintenanceConfig>({
@@ -86,6 +87,7 @@ export function Admin() {
 
       await api.post('/maintenance', payload);
       toast.success('Configurações de manutenção salvas!');
+      setIsScheduled(false); // fecha o painel de agendamento após salvar
       fetchMaintenanceConfig();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao salvar configurações.');
@@ -118,8 +120,7 @@ export function Admin() {
     queryFn: async () => {
       const response = await api.get('/admin/stats');
       return response.data;
-    },
-    refetchInterval: 5000
+    }
   });
 
   const { data: users, isLoading: usersLoading } = useQuery<AdminUser[]>({
@@ -127,8 +128,7 @@ export function Admin() {
     queryFn: async () => {
       const response = await api.get('/admin/users');
       return response.data;
-    },
-    refetchInterval: 5000
+    }
   });
 
   const updateRoleMutation = useMutation({
@@ -160,8 +160,8 @@ export function Admin() {
   });
 
   const transferOwnershipMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await api.post(`/admin/users/${id}/transfer-ownership`);
+    mutationFn: async ({ id, password }: { id: string; password?: string }) => {
+      const response = await api.post(`/admin/users/${id}/transfer-ownership`, { password });
       return response.data;
     },
     onSuccess: (data) => {
@@ -196,8 +196,15 @@ export function Admin() {
 
   const confirmTransferOwnership = () => {
     if (!transferModal) return;
-    transferOwnershipMutation.mutate(transferModal.userId, {
-      onSuccess: () => setTransferModal(null)
+    if (!transferPassword) {
+      toast.error('Por favor, introduza a palavra-passe.');
+      return;
+    }
+    transferOwnershipMutation.mutate({ id: transferModal.userId, password: transferPassword }, {
+      onSuccess: () => {
+        setTransferModal(null);
+        setTransferPassword('');
+      }
     });
   };
 
@@ -270,6 +277,11 @@ export function Admin() {
               Em Manutenção
             </span>
           )}
+          {!mConfig.isActive && mConfig.scheduledStart && (
+            <span className="bg-blue-500/25 text-blue-500 border border-blue-500/40 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider">
+              Agendada
+            </span>
+          )}
         </div>
 
         <form onSubmit={handleSaveMaintenance} className="space-y-4">
@@ -293,7 +305,7 @@ export function Admin() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tempo Estimado</label>
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tempo Estimado (opcional)</label>
               <div className="relative">
                 <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
                 <input
@@ -301,12 +313,12 @@ export function Admin() {
                   placeholder="Ex: 2 horas, 45 minutos"
                   value={mConfig.estimatedTime}
                   onChange={(e) => setMConfig(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                  className="w-full bg-secondary border border-border p-4 pl-12 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+                  className="w-full bg-secondary border border-border p-3 pl-12 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
                 />
               </div>
             </div>
 
-            <div className="p-4 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between self-end h-[58px]">
+            <div className="p-3 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between self-end h-[50px]">
               <div className="space-y-1">
                 <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isScheduled">
                   Agendar Manutenção Futura
@@ -327,24 +339,22 @@ export function Admin() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2"
             >
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0 overflow-hidden">
                 <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Início da Manutenção</label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                  <input
-                    type="datetime-local"
-                    value={mConfig.scheduledStart || ''}
-                    onChange={(e) => setMConfig(prev => ({ ...prev, scheduledStart: e.target.value }))}
-                    required={isScheduled}
-                    className="w-full bg-secondary border border-border p-4 pl-12 rounded-2xl outline-none focus:border-primary/50 text-foreground text-xs font-medium"
-                  />
-                </div>
+                <input
+                  type="datetime-local"
+                  value={mConfig.scheduledStart || ''}
+                  onChange={(e) => setMConfig(prev => ({ ...prev, scheduledStart: e.target.value }))}
+                  required={isScheduled}
+                  className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-xs font-medium box-border"
+                  style={{ maxWidth: '100%' }}
+                />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Duração (Horas)</label>
+              <div className="space-y-2 min-w-0">
+                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Duração em Horas (opcional)</label>
                 <input
                   type="number"
                   step="0.5"
@@ -352,28 +362,26 @@ export function Admin() {
                   placeholder="Ex: 2.5"
                   value={mConfig.durationHours || ''}
                   onChange={(e) => setMConfig(prev => ({ ...prev, durationHours: e.target.value ? Number(e.target.value) : null }))}
-                  required={isScheduled}
-                  className="w-full bg-secondary border border-border p-4 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+                  className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium min-w-0"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Aviso Prévio (Horas)</label>
+              <div className="space-y-2 min-w-0">
+                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Aviso Prévio em Horas (opcional)</label>
                 <input
                   type="number"
                   min="1"
                   placeholder="Ex: 24 (1 dia antes)"
                   value={mConfig.leadTimeHours || ''}
                   onChange={(e) => setMConfig(prev => ({ ...prev, leadTimeHours: e.target.value ? Number(e.target.value) : null }))}
-                  required={isScheduled}
-                  className="w-full bg-secondary border border-border p-4 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+                  className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium min-w-0"
                 />
               </div>
             </motion.div>
           )}
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
-            {mConfig.isActive && (
+            {(mConfig.isActive || mConfig.scheduledStart) && (
               <button
                 type="button"
                 onClick={handleImmediateStop}
@@ -381,7 +389,7 @@ export function Admin() {
                 className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
               >
                 <Square size={16} />
-                Parar Manutenção Imediatamente
+                {mConfig.isActive ? 'Parar Manutenção Imediatamente' : 'Cancelar Agendamento'}
               </button>
             )}
             <button
@@ -710,7 +718,7 @@ export function Admin() {
                   <ArrowRightLeft size={24} />
                 </div>
                 <button
-                  onClick={() => setTransferModal(null)}
+                  onClick={() => { setTransferModal(null); setTransferPassword(''); }}
                   className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
                 >
                   <X size={16} />
@@ -719,17 +727,28 @@ export function Admin() {
 
               <h3 className="text-xl font-black mb-2 text-foreground">Transferir Posse?</h3>
 
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <p className="text-muted-foreground mb-6 leading-relaxed text-sm">
                 Você está transferindo a posse de <strong>Dono</strong> para <strong className="text-foreground">{transferModal.userName}</strong>.
                 <br /><br />
-                Isto significa que você passará a ser um administrador comum e o usuário <strong>{transferModal.userName}</strong> passará a ser o único a deter direitos inalteráveis e que poderá remover sua conta ou rebaixá-lo no futuro.
+                Isto significa que você passará a ser um administrador comum e o usuário <strong>{transferModal.userName}</strong> passará a ser o único a deter direitos inalteráveis.
                 <br /><br />
                 Tem a certeza?
               </p>
 
+              <div className="mb-6 space-y-2">
+                <label className="text-xs font-black text-amber-500 uppercase tracking-wider block ml-1">Palavra-passe de Confirmação</label>
+                <input
+                  type="password"
+                  placeholder="Digite a palavra-passe"
+                  value={transferPassword}
+                  onChange={(e) => setTransferPassword(e.target.value)}
+                  className="w-full bg-secondary border border-border p-3.5 rounded-2xl outline-none focus:border-amber-500 text-foreground text-sm font-bold placeholder:text-muted/65 transition-all shadow-inner"
+                />
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => setTransferModal(null)}
+                  onClick={() => { setTransferModal(null); setTransferPassword(''); }}
                   className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancelar

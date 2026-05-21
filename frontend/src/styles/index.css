@@ -44,12 +44,14 @@ html {
   overflow-x: hidden;
 }
 
-/* Prevent native date inputs from overflowing their containers */
-input[type="date"] {
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  display: block;
+/* Prevent native date and datetime-local inputs from overflowing their containers */
+input[type="date"],
+input[type="datetime-local"] {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  display: block !important;
 }
 
 /* Premium UX: Prevent selection on all interactive elements */

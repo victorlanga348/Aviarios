@@ -28,17 +28,31 @@ async function checkMaintenanceStatus() {
     // 2. Manutenção Agendada ativa ou em janela de aviso
     if (maintenance.scheduledStart) {
         const start = new Date(maintenance.scheduledStart);
-        const duration = maintenance.durationHours || 2;
-        const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+        const duration = maintenance.durationHours; // pode ser null (sem limite)
 
-        // Se está dentro do período agendado
-        if (now >= start && now <= end) {
-            return {
-                inMaintenance: true,
-                showAlert: false,
-                estimatedTime: `${duration} horas`,
-                maintenance
-            };
+        // Se tem duração definida, calcula fim; senão, manutenção agendada não tem fim automático
+        if (duration) {
+            const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+
+            // Se está dentro do período agendado (com duração)
+            if (now >= start && now <= end) {
+                return {
+                    inMaintenance: true,
+                    showAlert: false,
+                    estimatedTime: maintenance.estimatedTime || `${duration} horas`,
+                    maintenance
+                };
+            }
+        } else {
+            // Sem duração: se já passou do início, está em manutenção indefinidamente
+            if (now >= start) {
+                return {
+                    inMaintenance: true,
+                    showAlert: false,
+                    estimatedTime: maintenance.estimatedTime || "Tempo indeterminado",
+                    maintenance
+                };
+            }
         }
 
         // Se o prazo de antecedência foi configurado, verifica se exibe o alerta de aviso prévio
@@ -57,7 +71,7 @@ async function checkMaintenanceStatus() {
                         : `Faltam ${diffHours} hora(s) para a manutenção agendada.`,
                     scheduledStart: maintenance.scheduledStart,
                     durationHours: maintenance.durationHours,
-                    estimatedTime: maintenance.estimatedTime || `${duration} horas`,
+                    estimatedTime: maintenance.estimatedTime || (duration ? `${duration} horas` : "Tempo indeterminado"),
                     maintenance
                 };
             }

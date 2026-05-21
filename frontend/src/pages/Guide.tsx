@@ -10,7 +10,8 @@ import {
   Lightbulb,
   Bird,
   Wallet,
-  Receipt
+  Receipt,
+  MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -209,11 +210,32 @@ export function Guide() {
         ))}
       </div>
 
-      <div className="mt-12 bg-primary/10 border border-primary/20 rounded-3xl p-6 text-center">
-        <h3 className="font-bold text-primary mb-2">Ainda tem dúvidas?</h3>
-        <p className="text-sm text-muted-foreground">
-          Explore o sistema! A melhor forma de aprender é usando. Você pode registrar e apagar vendas à vontade para testar as funcionalidades.
-        </p>
+      <div className="mt-12 bg-secondary/30 border border-border rounded-3xl p-8 text-center space-y-6">
+        <div className="max-w-md mx-auto space-y-2">
+          <h3 className="text-xl font-black text-foreground">Ainda tem dúvidas ou precisa de Ajuda?</h3>
+          <p className="text-sm text-muted-foreground">
+            Se você encontrou alguma dificuldade ou precisa de suporte técnico especializado, entre em contato direto com o nosso suporte oficial via WhatsApp.
+          </p>
+        </div>
+
+        <div className="flex justify-center">
+          <a
+            href="https://wa.me/258864336273"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 group hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-emerald-500/5"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+              <MessageCircle size={20} />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-black">Suporte via WhatsApp</p>
+              <p className="text-[10px] text-muted font-bold group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
+                Fale diretamente comigo no WhatsApp pessoal
+              </p>
+            </div>
+          </a>
+        </div>
       </div>
     </div>
   );

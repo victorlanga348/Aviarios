@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AlertTriangle, Wrench, Clock, XCircle } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -11,13 +11,13 @@ interface MaintenanceStatus {
   estimatedTime?: string;
   scheduledStart?: string;
   durationHours?: number;
+  leadTimeHours?: number;
 }
 
 export function MaintenanceBanner() {
   const [status, setStatus] = useState<MaintenanceStatus | null>(null);
   const { user, signOut } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
-  const [adminDismissed, setAdminDismissed] = useState(false);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -48,11 +48,9 @@ export function MaintenanceBanner() {
     const statusEffect = () => {
       if (status) {
         if (prevInMaintenanceRef.current && !status.inMaintenance) {
-          // maintenance finished -> reload page
           window.location.reload();
         }
         if (status.inMaintenance && !isAdmin) {
-          // clear toasts for regular users
           toast.dismiss();
         }
         prevInMaintenanceRef.current = status.inMaintenance;
@@ -69,7 +67,7 @@ export function MaintenanceBanner() {
 
   if (!status) return null;
 
-  // Block screen for normal users when maintenance is active
+  // ─── Full-screen block for normal users when maintenance is active ───
   if (status.inMaintenance && !isAdmin) {
     return (
       <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center p-6 text-center">
@@ -110,58 +108,71 @@ export function MaintenanceBanner() {
     );
   }
 
-  // Admin banner: show when alert is active or in maintenance
-  if (status.isAlertActive || status.inMaintenance) {
-    // If admin has dismissed, do not render
-    if (isAdmin && adminDismissed) return null;
-
+  // ─── Admin: small fixed bar when system IS in maintenance ───
+  if (status.inMaintenance && isAdmin) {
     return (
-      <AnimatePresence>
-        <div className="fixed bottom-4 left-0 right-0 z-[9000] flex justify-center pointer-events-none px-4">
-          <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="pointer-events-auto bg-amber-500 text-black px-6 py-2.5 shadow-2xl flex flex-col sm:flex-row items-center justify-center gap-3 text-sm font-bold rounded-full border border-amber-600/50"
-          >
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="animate-pulse" size={18} />
-              {status.inMaintenance ? (
-                <span>ATENÇÃO: O SISTEMA ESTÁ EM MANUTENÇÃO AGORA.</span>
-              ) : (
-                <span>AVISO DE MANUTENÇÃO PROGRAMADA:</span>
-              )}
-            </div>
-
-            {/* Scheduled start info */}
-            {!status.inMaintenance && status.scheduledStart && (
-              <span className="font-medium">
-                Início: {new Date(status.scheduledStart).toLocaleString('pt-MZ')}{' '}
-                {status.durationHours && ` (Duração est.: ${status.durationHours}h)`}
-              </span>
+      <motion.div 
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+        className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
+      >
+        <div className="bg-amber-500 text-black text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
+          <Wrench size={14} className="animate-spin" style={{ animationDuration: '3s' }} />
+          <span>
+            SISTEMA EM MANUTENÇÃO
+            {status.estimatedTime && status.estimatedTime !== 'Tempo indeterminado' && (
+              <> — Tempo estimado: {status.estimatedTime}</>
             )}
-
-            {/* Admin indicator */}
-            {status.inMaintenance && (
-              <span className="bg-black/20 px-2 py-0.5 rounded text-xs">Você está acessando como Admin</span>
-            )}
-
-            {/* Dismiss button for admins */}
-            {isAdmin && (
-              <button
-                  type="button"
-                  onClick={() => setAdminDismissed(true)}
-                  className="ml-2 text-black hover:text-gray-800"
-                  aria-label="Dismiss maintenance banner"
-                >
-                  ✕
-                </button>
-            )}
-          </motion.div>
+          </span>
         </div>
-      </AnimatePresence>
+      </motion.div>
     );
   }
 
-  // No banner to show
+  // ─── Admin: small fixed bar when maintenance is scheduled (not yet active) ───
+  if (status.scheduledStart && !status.inMaintenance && isAdmin) {
+    const start = new Date(status.scheduledStart);
+    const now = new Date();
+    if (start.getTime() > now.getTime()) {
+      return (
+        <motion.div 
+          initial={{ opacity: 0, y: -40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+          className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
+        >
+          <div className="bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
+            <Clock size={14} />
+            <span>Manutenção agendada para {start.toLocaleString('pt-MZ')}</span>
+          </div>
+        </motion.div>
+      );
+    }
+  }
+
+  // ─── Regular users: small fixed bar when maintenance is upcoming (within lead time) ───
+  if (status.scheduledStart && !status.inMaintenance && !isAdmin) {
+    const start = new Date(status.scheduledStart);
+    const now = new Date();
+    const leadMs = (status.leadTimeHours ?? 1) * 60 * 60 * 1000;
+    const diff = start.getTime() - now.getTime();
+    if (diff > 0 && diff <= leadMs) {
+      return (
+        <motion.div 
+          initial={{ opacity: 0, y: -40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+          className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
+        >
+          <div className="bg-amber-500 text-black text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
+            <AlertTriangle size={14} className="animate-pulse" />
+            <span>AVISO: Manutenção programada para {start.toLocaleString('pt-MZ')}</span>
+          </div>
+        </motion.div>
+      );
+    }
+  }
+
   return null;
 }

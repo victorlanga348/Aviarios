@@ -136,7 +136,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
 
-
           </motion.aside>
         )}
       </AnimatePresence>

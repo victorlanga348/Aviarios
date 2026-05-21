@@ -22,17 +22,27 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Se o backend retorna 503 (manutenção), dispara evento para o MaintenanceBanner
+    if (error.response?.status === 503 && error.response?.data?.error === 'SISTEMA_EM_MANUTENCAO') {
+      window.dispatchEvent(new CustomEvent('maintenance_event', {
+        detail: { estimatedTime: error.response.data.estimatedTime }
+      }));
+      // Não mostra toast duplicado para manutenção
+      return Promise.reject(error);
+    }
+
     const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Ocorreu um erro inesperado';
     
     toast.error(message);
 
-    // Se for erro de autenticação (401), podemos limpar o token e redirecionar
-    if (error.response?.status === 401) {
+    // Se for erro de autenticação (401) ou acesso proibido (403), limpamos as credenciais e redirecionamos
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('@AviarioPro:token');
+      localStorage.removeItem('@AviarioPro:user');
       window.location.href = '/login';
     }
 
     console.error('API Error:', message);
     return Promise.reject(error);
   }
-);
+);

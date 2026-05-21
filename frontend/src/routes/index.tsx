@@ -16,6 +16,7 @@ import { Guide } from '../pages/Guide';
 import { Perfil } from '../pages/Perfil';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
+// 1. Rota protegida do Administrador (Manda para /login se não logado)
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { signed, loading, user } = useAuth();
 
@@ -27,12 +28,13 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!signed) return <Navigate to="/" />;
+  if (!signed) return <Navigate to="/login" />;
   if (user?.role !== 'ADMIN') return <Navigate to="/dashboard" />;
 
   return <>{children}</>;
 }
 
+// 2. Rota protegida do Usuário Comum (Manda para /login se não logado)
 function UserRoute({ children }: { children: React.ReactNode }) {
   const { signed, loading } = useAuth();
 
@@ -44,11 +46,12 @@ function UserRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!signed) return <Navigate to="/" />;
+  if (!signed) return <Navigate to="/login" />;
 
   return <>{children}</>;
 }
 
+// 3. Controle da Raiz "/" (Manda pro painel se logado, se deslogado mostra a Landing)
 function HomeRoute() {
   const { signed, loading, user } = useAuth();
 
@@ -64,11 +67,6 @@ function HomeRoute() {
     return user?.role === 'ADMIN' ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />;
   }
 
-  const hasAccount = localStorage.getItem('@AviarioPro:hasAccount') === 'true';
-  if (hasAccount) {
-    return <Navigate to="/login" />;
-  }
-
   return <Landing />;
 }
 
@@ -78,11 +76,15 @@ export function AppRoutes() {
       <AuthProvider>
         <MaintenanceBanner />
         <Routes>
+          {/* Rotas Públicas */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/landing" element={<Landing />} />
 
+          {/* Rota Raiz */}
           <Route path="/" element={<HomeRoute />} />
           
+          {/* Rotas de Usuário Autenticado */}
           <Route path="/dashboard" element={<UserRoute><MainLayout><Dashboard /></MainLayout></UserRoute>} />
           <Route path="/batches" element={<UserRoute><MainLayout><Batches /></MainLayout></UserRoute>} />
           <Route path="/sales" element={<UserRoute><MainLayout><Sales /></MainLayout></UserRoute>} />
@@ -92,8 +94,10 @@ export function AppRoutes() {
           <Route path="/guide" element={<UserRoute><MainLayout><Guide /></MainLayout></UserRoute>} />
           <Route path="/perfil" element={<UserRoute><MainLayout><Perfil /></MainLayout></UserRoute>} />
           
+          {/* Rota de Administrador Autenticado */}
           <Route path="/admin" element={<AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>} />
           
+          {/* Qualquer outra rota inexistente manda de volta para a raiz */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </AuthProvider>

@@ -1,4 +1,6 @@
-# 🚀 Aviário Pro - Gestão Inteligente de Aviários
+> Este repositório é público apenas para demonstração. O uso, cópia ou reutilização do código não é permitido sem autorização.
+
+# 🚀 Aviarios Pro - Gestão Inteligente de Aviários
 
 Aplicação Full Stack para gerenciamento e controle financeiro de aviários, englobando gestão de lotes, vendas em ponto de venda (PDV), controle de clientes e fiados, lançamentos de despesas operacionais (fixas), compras de insumos (ração e vacinas), registro de baixas (mortes de aves) e geração de relatórios de lucratividade. 
 
@@ -161,3 +163,13 @@ cd Aviarios
 ## ✍️ Autor
 
 Desenvolvido por **Victor Langa** como um sistema completo, altamente seguro e performático para informatizar o controle de aviários, demonstrando proficiência no desenvolvimento Full Stack robusto, manipulação de bancos de dados relacionais e implementação de interfaces modernas de alta usabilidade.
+
+## Licença e Direitos Autorais
+
+Este projecto é público apenas para fins de demonstração e avaliação.
+
+O código, design, documentação, arquitectura e lógica de negócio do Aviarios Pro estão protegidos por direitos autorais.
+
+Não é permitido copiar, reutilizar, modificar, vender, distribuir ou usar este projecto, total ou parcialmente, sem autorização prévia e por escrito dos autores.
+
+Todos os direitos reservados.

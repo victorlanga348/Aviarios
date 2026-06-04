@@ -173,7 +173,7 @@ export function Landing() {
         {/* FEATURES SECTION (SIMPLE LANGUAGE - EXPANDED TO 6 RICH SAAS FEATURE CARDS) */}
         <div className="space-y-12 border-t border-border/40 pt-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <h2 className="text-3xl font-black tracking-tight px-4">O que o Aviário Pro faz por você?</h2>
+            <h2 className="text-3xl font-black tracking-tight px-4">O que o Aviarios Pro faz por você?</h2>
             <p className="text-muted font-medium px-4">Tudo o que você precisa para controlar seu negócio de aves de forma completa, sem complicações.</p>
           </div>
 

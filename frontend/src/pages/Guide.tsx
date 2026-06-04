@@ -124,7 +124,7 @@ const guideSections = [
         <ul className="list-disc pl-5 space-y-1">
           <li>Vá até a aba de Lotes e clique em "Registrar Morte".</li>
           <li>Isso vai subtrair o frango morto do seu stock atual.</li>
-          <li>O sistema usa essa informação para calcular o seu <strong>Custo Real</strong>. Quando um frango morre, o dinheiro investido nele é "repassado" como prejuízo para os frangos vivos, diminuindo o seu lucro final. O Aviário Pro faz essa matemática complexa por você!</li>
+          <li>O sistema usa essa informação para calcular o seu <strong>Custo Real</strong>. Quando um frango morre, o dinheiro investido nele é "repassado" como prejuízo para os frangos vivos, diminuindo o seu lucro final. O Aviarios Pro faz essa matemática complexa por você!</li>
         </ul>
       </div>
     )
@@ -164,7 +164,7 @@ export function Guide() {
           MANUAL DE INSTRUÇÕES
         </h1>
         <p className="text-muted-foreground font-medium max-w-lg mx-auto">
-          Tudo o que você precisa saber para dominar o Aviário Pro e gerir o seu negócio como um verdadeiro profissional.
+          Tudo o que você precisa saber para dominar o Aviarios Pro e gerir o seu negócio como um verdadeiro profissional.
         </p>
       </div>
 

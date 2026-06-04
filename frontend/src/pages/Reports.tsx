@@ -55,7 +55,7 @@ export function Reports() {
       <div className="hidden print:flex flex-col border-b-4 border-primary pb-6 mb-8">
         <div className="flex justify-between items-end mb-4">
           <div>
-            <h1 className="text-4xl font-black text-primary tracking-tighter uppercase">Aviário Pro</h1>
+            <h1 className="text-4xl font-black text-primary tracking-tighter uppercase">Aviarios Pro</h1>
             <p className="text-sm font-bold text-gray-600">Sistema de Gestão Avícola de Alta Performance</p>
           </div>
           <div className="text-right">
@@ -161,7 +161,7 @@ export function Reports() {
       </div>
       
       <div className="hidden print:block text-center mt-8 text-[8px] text-gray-400 uppercase tracking-[0.5em]">
-        Gerado via Aviário Pro - Gestão Inteligente
+        Gerado via Aviarios Pro - Gestão Inteligente
       </div>
     </motion.div>
   );

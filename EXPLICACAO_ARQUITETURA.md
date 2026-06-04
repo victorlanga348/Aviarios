@@ -1,11 +1,11 @@
-# 📐 Aviário Pro - Documentação Científica e Guia de Reconstrução do Zero
+# 📐 Aviarios Pro - Documentação Científica e Guia de Reconstrução do Zero
 
-Este documento serve como um **blueprint técnico e conceitual completo** do sistema **Aviário Pro**. Ele foi elaborado para explicar detalhadamente cada engrenagem do projeto — desde a modelagem física do banco de dados até a mecânica de animações e otimização de queries — de forma que qualquer desenvolvedor possa compreender a fundo o ecossistema ou reconstruí-lo do absoluto zero.
+Este documento serve como um **blueprint técnico e conceitual completo** do sistema **Aviarios Pro**. Ele foi elaborado para explicar detalhadamente cada engrenagem do projeto — desde a modelagem física do banco de dados até a mecânica de animações e otimização de queries — de forma que qualquer desenvolvedor possa compreender a fundo o ecossistema ou reconstruí-lo do absoluto zero.
 
 ---
 
 ## 🛠️ 1. Arquitetura de Alto Nível
-O Aviário Pro é construído como uma aplicação de arquitetura desacoplada (Decoupled SPA/API):
+O Aviarios Pro é construído como uma aplicação de arquitetura desacoplada (Decoupled SPA/API):
 
 ```mermaid
 graph TD
@@ -85,7 +85,7 @@ Esse cálculo previne a falsa sensação de lucro de muitos produtores, pois des
 ### 🛡️ A. Integridade Atômica com Transações ACID ($transaction)
 Em sistemas de vendas e controle de estoque, a maior ameaça é a **inconsistência de concorrência** (e.g., duas pessoas venderem a mesma ave ao mesmo tempo, gerando estoque negativo, ou registrar a morte de uma ave e o sistema não atualizar a quantidade total do lote).
 
-No **Aviário Pro**, resolvemos isso blindando os serviços com **Transações de Banco de Dados** usando o recurso `$transaction` do Prisma:
+No **Aviarios Pro**, resolvemos isso blindando os serviços com **Transações de Banco de Dados** usando o recurso `$transaction` do Prisma:
 
 ```typescript
 await prisma.$transaction(async (tx) => {

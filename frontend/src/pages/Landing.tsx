@@ -38,11 +38,7 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden flex flex-col justify-between selection:bg-primary selection:text-white pt-[76px]">
-      {/* Decorative Blur Spheres */}
-      <div className="absolute top-[-10%] left-[-15%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[140px] animate-pulse pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-15%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[140px] animate-pulse delay-1000 pointer-events-none"></div>
-
-      {/* HEADER / NAVIGATION (FIXED STICKY WITH GLASSMORPHISM & THEME TOGGLE) */}
+      {/* Header */}
       <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-b border-border/40 z-50 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-1.5 sm:gap-3">
@@ -84,26 +80,26 @@ export function Landing() {
           {/* TEXT CONTENT */}
           <div className="lg:col-span-7 space-y-6 sm:space-y-8 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full text-primary font-bold text-xs uppercase tracking-wider">
-              <ShieldCheck size={14} /> 100% Simples e Direto
+              <ShieldCheck size={14} /> Simples e direto
             </div>
             
             <h1 className="text-4xl sm:text-6xl font-black leading-tight tracking-tight text-foreground">
-              O seu aviário na <br />
+              Gestao do aviario <br />
               <span className="bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent dark:to-emerald-400">
-                palma da sua mão!
+                sem improviso
               </span>
             </h1>
 
             <p className="text-muted text-base sm:text-xl max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              Chega de papelada! Esqueça o caderno e controle seus lotes de aves, registre mortes de forma fácil, marque suas vendas a fiado e veja o seu lucro real de um jeito que você realmente entende.
+              Controle lotes, perdas, vendas a fiado e lucro real numa rotina simples para producao avicola.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
               <button 
                 onClick={() => navigate('/register')}
-                className="w-full sm:w-auto bg-primary sm:hover:bg-emerald-500 text-black font-black py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 group shadow-xl shadow-primary/20 sm:hover:scale-[1.02] active:scale-95 active:bg-emerald-600"
+                className="w-full sm:w-auto bg-primary sm:hover:bg-emerald-500 text-black font-black py-4 px-8 rounded-2xl transition-colors flex items-center justify-center gap-2 group shadow-xl shadow-primary/20 active:bg-emerald-600"
               >
-                Criar Minha Conta Grátis
+                Criar conta
                 <ArrowRight size={20} className="group-hover:translate-x-1 sm:group-hover:translate-x-1 transition-transform" />
               </button>
               
@@ -117,9 +113,8 @@ export function Landing() {
             </div>
           </div>
 
-          {/* BEAUTIFUL MOCKUP CARD PREVIEW */}
+          {/* Product preview */}
           <div className="lg:col-span-5 relative w-full max-w-md mx-auto">
-            <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-75 -z-10"></div>
             
             {/* Main Mockup Card */}
             <div className="bg-card border border-border p-5 sm:p-6 rounded-[2.5rem] shadow-2xl relative z-10 space-y-6">
@@ -173,15 +168,15 @@ export function Landing() {
         {/* FEATURES SECTION (SIMPLE LANGUAGE - EXPANDED TO 6 RICH SAAS FEATURE CARDS) */}
         <div className="space-y-12 border-t border-border/40 pt-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <h2 className="text-3xl font-black tracking-tight px-4">O que o Aviarios Pro faz por você?</h2>
-            <p className="text-muted font-medium px-4">Tudo o que você precisa para controlar seu negócio de aves de forma completa, sem complicações.</p>
+            <h2 className="text-3xl font-black tracking-tight px-4">Operacao diaria do aviario</h2>
+            <p className="text-muted font-medium px-4">Ferramentas para registar producao, custos, vendas e recebimentos.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Feature 1: Lotes */}
             <div className="bg-card border border-border p-6 sm:p-8 rounded-[2rem] sm:hover:border-primary/20 transition-all duration-300 group shadow-lg flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center mb-6 sm:group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center mb-6">
                   <Package size={24} />
                 </div>
                 <h3 className="text-lg font-bold mb-2">Controle Geral de Lotes</h3>
@@ -194,7 +189,7 @@ export function Landing() {
             {/* Feature 2: Transporte */}
             <div className="bg-card border border-border p-6 sm:p-8 rounded-[2rem] sm:hover:border-primary/20 transition-all duration-300 group shadow-lg flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mb-6 sm:group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mb-6">
                   <Truck size={24} />
                 </div>
                 <h3 className="text-lg font-bold mb-2">Custos de Frete Integrados</h3>
@@ -207,7 +202,7 @@ export function Landing() {
             {/* Feature 3: Mortes e Alertas */}
             <div className="bg-card border border-border p-6 sm:p-8 rounded-[2rem] sm:hover:border-primary/20 transition-all duration-300 group shadow-lg flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center mb-6 sm:group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center mb-6">
                   <AlertTriangle size={24} />
                 </div>
                 <h3 className="text-lg font-bold mb-2">Alertas de Mortalidade</h3>
@@ -220,12 +215,12 @@ export function Landing() {
             {/* Feature 4: Fiado e Clientes */}
             <div className="bg-card border border-border p-6 sm:p-8 rounded-[2rem] sm:hover:border-primary/20 transition-all duration-300 group shadow-lg flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center mb-6 sm:group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center mb-6">
                   <Users size={24} />
                 </div>
                 <h3 className="text-lg font-bold mb-2">Controle Total do Fiado</h3>
                 <p className="text-muted text-sm leading-relaxed font-semibold">
-                  Esqueça o caderno! Gerencie clientes de forma fácil, registre vendas a fiado e veja na hora o saldo devedor e o histórico detalhado de pagamentos.
+                  Registe vendas a fiado, acompanhe saldos devedores e consulte o historico de pagamentos por cliente.
                 </p>
               </div>
             </div>
@@ -233,7 +228,7 @@ export function Landing() {
             {/* Feature 5: Despesas Fixas */}
             <div className="bg-card border border-border p-6 sm:p-8 rounded-[2rem] sm:hover:border-primary/20 transition-all duration-300 group shadow-lg flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-500 flex items-center justify-center mb-6">
                   <Coins size={24} />
                 </div>
                 <h3 className="text-lg font-bold mb-2">Despesas Fixas Prorrateadas</h3>
@@ -246,7 +241,7 @@ export function Landing() {
             {/* Feature 6: Lucro Líquido Real */}
             <div className="bg-card border border-border p-6 sm:p-8 rounded-[2rem] sm:hover:border-primary/20 transition-all duration-300 group shadow-lg flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-6">
                   <TrendingUp size={24} />
                 </div>
                 <h3 className="text-lg font-bold mb-2">Relatórios de Lucro Real</h3>
@@ -261,8 +256,8 @@ export function Landing() {
         {/* HOW IT WORKS (SIMPLE 4 STEPS) */}
         <div className="bg-secondary/20 border border-border p-6 sm:p-12 rounded-[2.5rem] space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <h2 className="text-3xl font-black tracking-tight px-4">Como funciona? É muito simples!</h2>
-            <p className="text-muted font-medium px-4">Veja os 4 passos para organizar todo o seu aviário de vez.</p>
+            <h2 className="text-3xl font-black tracking-tight px-4">Fluxo de trabalho</h2>
+            <p className="text-muted font-medium px-4">Do cadastro do lote ao acompanhamento do resultado financeiro.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8 relative">
@@ -289,29 +284,28 @@ export function Landing() {
 
             {/* Step 4 */}
             <div className="space-y-3 relative bg-card/40 border border-border/40 p-5 rounded-2xl">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500 text-black font-black flex items-center justify-center text-sm">✓</div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-500 text-black font-black flex items-center justify-center text-sm">4</div>
               <h4 className="font-bold text-base text-foreground">Veja a Lucratividade</h4>
-              <p className="text-muted text-xs leading-relaxed font-medium">Pronto! O sistema faz todas as contas difíceis e te entrega o lucro limpo na tela ou em PDF.</p>
+              <p className="text-muted text-xs leading-relaxed font-medium">Consulte receitas, custos e lucro real na tela ou em PDF.</p>
             </div>
           </div>
         </div>
 
         {/* BOTTOM CTA SECTION */}
-        <div className="text-center py-12 space-y-6 sm:space-y-8 max-w-4xl mx-auto relative overflow-hidden rounded-[3rem] border border-primary/20 bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-8">
-          <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full scale-50"></div>
+        <div className="text-center py-12 space-y-6 sm:space-y-8 max-w-4xl mx-auto relative overflow-hidden rounded-3xl border border-primary/20 bg-card p-6 sm:p-8">
           <h2 className="text-3xl sm:text-5xl font-black text-foreground relative z-10 leading-tight">
-            Pronto para ver o seu negócio <br />
-            decolar de verdade?
+            Controle o aviario <br />
+            com dados claros
           </h2>
           <p className="text-muted font-medium text-sm sm:text-base max-w-xl mx-auto relative z-10 leading-relaxed">
-            Junte-se a produtores que abandonaram a caneta e o caderno e agora gerenciam seus aviários de forma profissional e simples!
+            Registe lotes, custos, vendas e pagamentos num unico lugar.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10 pt-4 max-w-sm mx-auto">
             <button 
               onClick={() => navigate('/register')}
-              className="w-full bg-primary sm:hover:bg-emerald-500 text-black font-black py-4 px-8 rounded-2xl transition-all duration-300 shadow-xl shadow-primary/20 sm:hover:scale-[1.02] active:scale-95 active:bg-emerald-600"
+              className="w-full bg-primary sm:hover:bg-emerald-500 text-black font-black py-4 px-8 rounded-2xl transition-colors shadow-xl shadow-primary/20 active:bg-emerald-600"
             >
-              Criar Conta Grátis
+              Criar conta
             </button>
             <button 
               onClick={() => navigate('/login')}
@@ -326,7 +320,7 @@ export function Landing() {
       {/* FOOTER */}
       <footer className="w-full border-t border-border/40 py-8 bg-secondary/10 relative z-20 text-center">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-bold uppercase tracking-wider text-muted/60">
-          <span>© {new Date().getFullYear()} AVIÁRIO PRO - GESTÃO AVÍCOLA DE ALTA PERFORMANCE</span>
+          <span>© {new Date().getFullYear()} AVIARIO PRO - GESTAO AVICOLA</span>
           <span className="sm:hover:text-primary transition-colors cursor-pointer active:scale-95" onClick={() => navigate('/login')}>Desenvolvido com simplicidade</span>
         </div>
       </footer>

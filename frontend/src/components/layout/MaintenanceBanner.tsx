@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Wrench, Clock, XCircle } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { fastTransition, feedbackVariants, modalVariants, motionTransition } from '../../lib/animations';
 
 interface MaintenanceStatus {
   inMaintenance: boolean;
@@ -16,6 +17,7 @@ interface MaintenanceStatus {
 
 export function MaintenanceBanner() {
   const [status, setStatus] = useState<MaintenanceStatus | null>(null);
+  const prevInMaintenanceRef = useRef(false);
   const { user, signOut } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -24,7 +26,7 @@ export function MaintenanceBanner() {
       try {
         const response = await api.get('/maintenance');
         setStatus(response.data);
-      } catch (error) {
+      } catch {
         // ignore errors
       }
     };
@@ -42,28 +44,23 @@ export function MaintenanceBanner() {
     };
 
     window.addEventListener('maintenance_event', handleMaintenanceEvent);
-
-    // Effect to handle status changes
-    const prevInMaintenanceRef = { current: false } as { current: boolean };
-    const statusEffect = () => {
-      if (status) {
-        if (prevInMaintenanceRef.current && !status.inMaintenance) {
-          window.location.reload();
-        }
-        if (status.inMaintenance && !isAdmin) {
-          toast.dismiss();
-        }
-        prevInMaintenanceRef.current = status.inMaintenance;
-      }
-    };
-    const statusWatcher = setInterval(statusEffect, 500);
-
     return () => {
       clearInterval(interval);
-      clearInterval(statusWatcher);
       window.removeEventListener('maintenance_event', handleMaintenanceEvent);
     };
   }, []);
+
+  useEffect(() => {
+    if (!status) return;
+
+    if (prevInMaintenanceRef.current && !status.inMaintenance) {
+      window.location.reload();
+    }
+    if (status.inMaintenance && !isAdmin) {
+      toast.dismiss();
+    }
+    prevInMaintenanceRef.current = status.inMaintenance;
+  }, [isAdmin, status]);
 
   if (!status) return null;
 
@@ -72,12 +69,14 @@ export function MaintenanceBanner() {
     return (
       <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center p-6 text-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          variants={modalVariants}
+          initial="initial"
+          animate="animate"
+          transition={motionTransition}
           className="max-w-md w-full bg-card border border-border rounded-[2rem] p-8 shadow-2xl space-y-6 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl -mr-16 -mt-16" />
-          <div className="mx-auto w-20 h-20 bg-amber-500/20 rounded-3xl flex items-center justify-center text-amber-500 border border-amber-500/30 animate-pulse">
+          <div className="mx-auto w-20 h-20 bg-amber-500/20 rounded-3xl flex items-center justify-center text-amber-500 border border-amber-500/30">
             <Wrench size={40} />
           </div>
           <div className="space-y-2">
@@ -112,9 +111,10 @@ export function MaintenanceBanner() {
   if (status.inMaintenance && isAdmin) {
     return (
       <motion.div 
-        initial={{ opacity: 0, y: -40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+        variants={feedbackVariants}
+        initial="initial"
+        animate="animate"
+        transition={fastTransition}
         className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
       >
         <div className="bg-amber-500 text-black text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
@@ -137,9 +137,10 @@ export function MaintenanceBanner() {
     if (start.getTime() > now.getTime()) {
       return (
         <motion.div 
-          initial={{ opacity: 0, y: -40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+          variants={feedbackVariants}
+          initial="initial"
+          animate="animate"
+          transition={fastTransition}
           className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
         >
           <div className="bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
@@ -160,13 +161,14 @@ export function MaintenanceBanner() {
     if (diff > 0 && diff <= leadMs) {
       return (
         <motion.div 
-          initial={{ opacity: 0, y: -40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+          variants={feedbackVariants}
+          initial="initial"
+          animate="animate"
+          transition={fastTransition}
           className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
         >
           <div className="bg-amber-500 text-black text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
-            <AlertTriangle size={14} className="animate-pulse" />
+            <AlertTriangle size={14} />
             <span>AVISO: Manutenção programada para {start.toLocaleString('pt-MZ')}</span>
           </div>
         </motion.div>

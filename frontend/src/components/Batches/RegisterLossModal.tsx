@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Skull, AlertTriangle, X } from 'lucide-react';
 import type { Batch } from '../../@types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fastTransition, modalVariants, motionTransition, overlayVariants } from '../../lib/animations';
 
 interface RegisterLossModalProps {
   isOpen: boolean;
@@ -15,10 +17,10 @@ export function RegisterLossModal({ isOpen, onClose, onSubmit, isLoading, batch 
   const [reason, setReason] = useState<string>('');
   const [error, setError] = useState<string>('');
 
-  if (!isOpen || !batch) return null;
-
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!batch) return;
+
     setError('');
 
     const qtyNum = Number(quantity);
@@ -52,15 +54,28 @@ export function RegisterLossModal({ isOpen, onClose, onSubmit, isLoading, batch 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-        onClick={onClose} 
-      />
+    <AnimatePresence>
+      {isOpen && batch && (
+        <motion.div
+          variants={overlayVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={motionTransition}
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto bg-black/70 backdrop-blur-sm"
+          onClick={onClose}
+        >
 
       {/* Modal Box */}
-      <div className="relative bg-card border border-border rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <motion.div
+        variants={modalVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={fastTransition}
+        className="relative bg-card border border-border rounded-3xl w-full max-w-md max-h-[calc(100dvh-2rem)] p-6 sm:p-8 shadow-2xl z-10 overflow-y-auto overflow-x-hidden my-4 sm:my-0"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 blur-3xl -mr-16 -mt-16"></div>
         
         {/* Header */}
@@ -136,25 +151,20 @@ export function RegisterLossModal({ isOpen, onClose, onSubmit, isLoading, batch 
             </div>
           </div>
 
-          {/* Footer Buttons */}
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-3.5 bg-secondary hover:bg-secondary/80 text-foreground font-bold rounded-xl transition text-sm border border-border"
-            >
-              Cancelar
-            </button>
+          {/* Footer */}
+          <div className="pt-2">
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-grow py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl transition text-sm shadow-lg shadow-rose-500/10 active:scale-95 disabled:opacity-50"
+              className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl transition text-sm shadow-lg shadow-rose-500/10 active:scale-95 disabled:opacity-50"
             >
               {isLoading ? 'Registrando...' : 'Confirmar Perda'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

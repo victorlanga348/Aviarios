@@ -1,5 +1,6 @@
 import prisma from "../config/db.js";
 import { BatchStatus } from "@prisma/client";
+import { badRequest, notFound } from "../utils/httpError.js";
 
 async function createBatch(userId: string, name: string, costPerBird: number, initialQuantity: number, transportCost: number, status: BatchStatus) {
     const batch = await prisma.batch.create({
@@ -30,10 +31,10 @@ async function updateBatchStatus(userId: string, id: string, status: BatchStatus
     if (status === 'ACTIVE') {
         const existingBatch = await prisma.batch.findUnique({ where: { id, userId } });
         if (!existingBatch) {
-            throw new Error("Lote não encontrado");
+            throw notFound("Lote não encontrado");
         }
         if (existingBatch.actualQuantity !== null && existingBatch.actualQuantity <= 0) {
-            throw new Error("Não é possível ativar um lote que não possui aves.");
+            throw badRequest("Não é possível ativar um lote que não possui aves.");
         }
     }
 

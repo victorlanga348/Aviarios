@@ -27,9 +27,10 @@ async function getBatchReport(userId: string, month?: number, year?: number) {
     });
 
     return batches.map(batch => {
-        const birdsSold = batch.sales.reduce((acc, s) => acc + s.quantity, 0);
+        const realizedSales = batch.sales.filter(s => !s.isScheduled || s.scheduledStatus === 'DELIVERED');
+        const birdsSold = realizedSales.reduce((acc, s) => acc + s.quantity, 0);
         const birdsLost = batch.losses.reduce((acc, l) => acc + l.quantity, 0);
-        const totalSalesValue = batch.sales.reduce((acc, s) => acc + s.totalValue, 0);
+        const totalSalesValue = realizedSales.reduce((acc, s) => acc + s.totalValue, 0);
         const totalSpecificExpenses = batch.expenses.reduce((acc, e) => acc + e.amount, 0);
         
         // Cada ave vendida carrega seu custo de compra + sua parte proporcional do transporte original.

@@ -14,6 +14,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fastTransition, feedbackVariants } from '../lib/animations';
 
 const guideSections = [
   {
@@ -75,7 +76,7 @@ const guideSections = [
           <li><strong>Custo de Transporte:</strong> (Opcional) O valor que você pagou para transportar os frangos até o aviário. Esse valor é muito importante porque ele é somado ao custo total do lote para calcular o seu lucro real.</li>
         </ul>
         <div className="p-3 bg-secondary/30 rounded-xl border border-border mt-2">
-          <p className="font-bold text-foreground text-xs flex items-center gap-1"><Lightbulb size={14} className="text-amber-500"/> Dica de Ouro</p>
+          <p className="font-bold text-foreground text-xs flex items-center gap-1"><Lightbulb size={14} className="text-amber-500"/> Nota</p>
           <p className="text-xs mt-1">Sempre crie um lote assim que os frangos chegarem no aviário para manter o stock exato!</p>
         </div>
       </div>
@@ -164,7 +165,7 @@ export function Guide() {
           MANUAL DE INSTRUÇÕES
         </h1>
         <p className="text-muted-foreground font-medium max-w-lg mx-auto">
-          Tudo o que você precisa saber para dominar o Aviarios Pro e gerir o seu negócio como um verdadeiro profissional.
+          Informacoes essenciais para usar o Aviarios Pro no dia a dia.
         </p>
       </div>
 
@@ -193,10 +194,11 @@ export function Guide() {
             <AnimatePresence>
               {openSection === section.id && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  variants={feedbackVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={fastTransition}
                 >
                   <div className="p-5 sm:p-6 pt-0 sm:pt-0 border-t border-border/50">
                     <div className="pt-4">
@@ -223,9 +225,9 @@ export function Guide() {
             href="https://wa.me/258864336273"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 group hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-emerald-500/5"
+            className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 transition-colors group shadow-sm shadow-emerald-500/5"
           >
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
               <MessageCircle size={20} />
             </div>
             <div className="text-left">

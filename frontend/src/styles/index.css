@@ -44,9 +44,11 @@ html {
   overflow-x: hidden;
 }
 
-/* Prevent native date and datetime-local inputs from overflowing their containers */
+/* Prevent native date/time controls from overflowing their containers */
 input[type="date"],
-input[type="datetime-local"] {
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"] {
   max-width: 100% !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
@@ -54,7 +56,27 @@ input[type="datetime-local"] {
   display: block !important;
 }
 
-/* Premium UX: Prevent selection on all interactive elements */
+.date-input-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.date-input-shell > input[type="date"],
+.date-input-shell > input[type="datetime-local"],
+.date-input-shell > input[type="time"],
+.date-input-shell > input[type="month"] {
+  border: 0;
+  background: transparent;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Prevent accidental text selection on interactive elements */
 button,
 a,
 svg,
@@ -67,144 +89,41 @@ img,
   -ms-user-select: none;
 }
 
-/* ==========================================================================
-   PREMIUM MICRO-ANIMATIONS & INTERACTION TOKENS (HIGHLY ROBUST)
-   ========================================================================== */
-
-/* 1. Static Cards (Perfect visual response, NO transform or layout shift, NO framer-motion interference) */
-.bg-card, 
-.bg-card\/40 {
-  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (hover: hover) {
-  .bg-card:hover, 
-  .bg-card\/40:hover {
-    border-color: rgba(16, 185, 129, 0.25);
-    box-shadow: 0 12px 30px -10px rgba(16, 185, 129, 0.08),
-                inset 0 0 20px rgba(16, 185, 129, 0.02); /* Solid overlay glow that never affects card opacity */
-  }
-}
-
-/* 2. Interactive / Clickable Cards (Smooth lift and shadow) */
-.bg-card\/50 {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (hover: hover) {
-  .bg-card\/50:hover {
-    transform: translateY(-3px);
-    border-color: rgba(16, 185, 129, 0.3);
-    box-shadow: 0 16px 36px -12px rgba(16, 185, 129, 0.12);
-    cursor: pointer;
-  }
-}
-
-/* 3. Interactive Buttons (Tactile hover + active press without page-level conflict) */
+/* Global interaction tokens: quick, subtle, no layout-affecting movement. */
 button, 
 .btn,
 input[type="submit"] {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.25s ease, 
-              border-color 0.25s ease, 
-              color 0.25s ease, 
-              box-shadow 0.25s ease;
+  transition: background-color 0.18s ease,
+              border-color 0.18s ease,
+              color 0.18s ease,
+              box-shadow 0.18s ease,
+              opacity 0.18s ease;
 }
 
 @media (hover: hover) {
   button:hover:not(:disabled), 
   .btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 20px -8px rgba(16, 185, 129, 0.4);
-  }
-
-  /* Primary Green Buttons Hover */
-  button.bg-primary:hover,
-  .btn-primary:hover {
-    background-color: #059669 !important; /* Elegant emerald deep */
-    border-color: #059669 !important;
-    color: #ffffff !important;
-  }
-
-  /* Secondary / Outline Buttons Hover */
-  button.bg-secondary:hover,
-  button:hover:not(.bg-primary):not(.text-rose-500):not(:disabled) {
-    background-color: rgba(16, 185, 129, 0.08);
-    color: #10b981;
-    border-color: rgba(16, 185, 129, 0.25);
+    box-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.45);
   }
 }
 
-/* Tactile Active click shrink */
 button:active:not(:disabled), 
 .btn:active {
-  transform: scale(0.96);
-  transition: transform 0.1s ease; /* Fast tactile response */
+  opacity: 0.86;
 }
 
 button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-  transform: none;
   box-shadow: none;
 }
 
-/* 4. Sidebar Navigation Links (Slide + glow effect) */
 a.flex.items-center.gap-4 {
-  transition: padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-              background-color 0.3s ease, 
-              color 0.3s ease, 
-              box-shadow 0.3s ease;
+  transition: background-color 0.18s ease,
+              color 0.18s ease,
+              box-shadow 0.18s ease;
 }
 
-/* Non-active links slide-right + green tint on hover */
-@media (hover: hover) {
-  a.flex.items-center.gap-4:hover:not(.bg-primary) {
-    padding-left: 1.25rem; /* Smooth right slide */
-    color: #10b981;
-    background-color: rgba(16, 185, 129, 0.06);
-  }
-}
-
-/* Active links breathe with gradient shadow */
-a.flex.items-center.gap-4.bg-primary {
-  box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.25);
-}
-
-@media (hover: hover) {
-  a.flex.items-center.gap-4.bg-primary:hover {
-    background-color: #059669 !important;
-    box-shadow: 0 8px 20px -2px rgba(16, 185, 129, 0.4);
-    padding-left: 1.25rem;
-  }
-}
-
-/* 5. Action and Trash Buttons (Pure color feedback + micro scaling) */
-button.text-rose-500,
-.text-rose-500 button,
-button.text-rose-500 svg {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
-              background-color 0.25s ease, 
-              color 0.25s ease, 
-              border-color 0.25s ease;
-}
-
-@media (hover: hover) {
-  button.text-rose-500:hover,
-  a.text-rose-500:hover {
-    transform: scale(1.06);
-    background-color: rgba(244, 63, 94, 0.1);
-    color: #f43f5e;
-    border-color: rgba(244, 63, 94, 0.15);
-  }
-}
-
-/* 6. Inputs subtle focus glow (No general all transition to prevent mobile keyboard resize snap) */
 input, 
 select, 
 textarea {
@@ -218,7 +137,6 @@ textarea:focus {
   border-color: rgba(16, 185, 129, 0.5);
 }
 
-/* 7. PREVENT MOBILE INPUT ZOOM: Safari/Chrome zooms in if input font-size is < 16px */
 @media (max-width: 768px) {
   input, 
   select, 
@@ -234,4 +152,15 @@ textarea:focus {
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

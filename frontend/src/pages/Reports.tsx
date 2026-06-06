@@ -2,6 +2,7 @@ import { useReports } from '../hooks/useReports';
 import { FileText, Download, TrendingUp, HelpCircle } from 'lucide-react';
 import { useGlobalDate } from '../contexts/DateContext';
 import { motion } from 'framer-motion';
+import { motionTransition, pageVariants } from '../lib/animations';
 
 interface ReportEntry {
   id: string;
@@ -34,9 +35,10 @@ export function Reports() {
   return (
     <motion.div
       key={`${queryMonth}-${queryYear}`}
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      transition={motionTransition}
       className="space-y-8 print:space-y-4 print:p-0"
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
@@ -56,7 +58,7 @@ export function Reports() {
         <div className="flex justify-between items-end mb-4">
           <div>
             <h1 className="text-4xl font-black text-primary tracking-tighter uppercase">Aviarios Pro</h1>
-            <p className="text-sm font-bold text-gray-600">Sistema de Gestão Avícola de Alta Performance</p>
+            <p className="text-sm font-bold text-gray-600">Sistema de Gestao Avicola</p>
           </div>
           <div className="text-right">
             <p className="text-xs font-bold uppercase text-gray-500">Documento Oficial</p>
@@ -161,7 +163,7 @@ export function Reports() {
       </div>
       
       <div className="hidden print:block text-center mt-8 text-[8px] text-gray-400 uppercase tracking-[0.5em]">
-        Gerado via Aviarios Pro - Gestão Inteligente
+        Gerado via Aviarios Pro
       </div>
     </motion.div>
   );

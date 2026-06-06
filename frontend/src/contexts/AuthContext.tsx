@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from 'react';
+import { isAxiosError } from 'axios';
 import { api } from '../lib/api';
 import type { User } from '../@types';
 
@@ -17,19 +18,29 @@ interface AuthContextData {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
+const getStoredUser = (): User | null => {
+  const storagedUser = localStorage.getItem('@AviarioPro:user');
+  const storagedToken = localStorage.getItem('@AviarioPro:token');
+
+  if (!storagedUser || !storagedToken) return null;
+
+  try {
+    return JSON.parse(storagedUser) as User;
+  } catch {
+    localStorage.removeItem('@AviarioPro:user');
+    localStorage.removeItem('@AviarioPro:token');
+    return null;
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => getStoredUser());
+  const loading = false;
 
-  useEffect(() => {
-    const storagedUser = localStorage.getItem('@AviarioPro:user');
-    const storagedToken = localStorage.getItem('@AviarioPro:token');
-
-    if (storagedUser && storagedToken) {
-      setUser(JSON.parse(storagedUser));
-    }
-    
-    setLoading(false);
+  const signOut = useCallback(() => {
+    localStorage.removeItem('@AviarioPro:token');
+    localStorage.removeItem('@AviarioPro:user');
+    setUser(null);
   }, []);
 
   // Sincronização periódica do perfil
@@ -40,16 +51,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const syncProfile = async () => {
       try {
         const response = await api.get('/profile/me');
-        const freshUser = response.data.user;
+        const freshUser = (response.data as { user?: User }).user;
         if (freshUser) {
           if (freshUser.id === user.id && (freshUser.role !== user.role || freshUser.name !== user.name || freshUser.email !== user.email)) {
             setUser(freshUser);
             localStorage.setItem('@AviarioPro:user', JSON.stringify(freshUser));
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Erro ao sincronizar perfil:", err);
-        if (err.response?.status === 401) {
+        if (isAxiosError(err) && err.response?.status === 401) {
           signOut();
         }
       }
@@ -63,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeout);
       clearInterval(interval);
     };
-  }, [user?.id]);
+  }, [signOut, user]);
 
   async function signIn({ email, password }: SignInCredentials) {
     const response = await api.post('/login', { email, password });
@@ -75,12 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('@AviarioPro:user', JSON.stringify(userData));
     localStorage.setItem('@AviarioPro:token', token);
     localStorage.setItem('@AviarioPro:hasAccount', 'true');
-  }
-
-  function signOut() {
-    localStorage.removeItem('@AviarioPro:token');
-    localStorage.removeItem('@AviarioPro:user');
-    setUser(null);
   }
 
   return (
@@ -96,4 +101,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

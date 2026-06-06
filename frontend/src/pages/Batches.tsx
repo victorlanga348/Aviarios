@@ -7,6 +7,7 @@ import { LossHistoryModal } from '../components/Batches/LossHistoryModal';
 import { Plus, Package, Calendar, Trash2, Skull, AlertTriangle, History } from 'lucide-react';
 import type { Batch } from '../@types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cardListVariants, motionTransition } from '../lib/animations';
 
 export function Batches() {
   const { 
@@ -67,7 +68,7 @@ export function Batches() {
         </div>
       ) : batches.length === 0 ? (
         <div className="bg-card/30 border border-border p-12 rounded-3xl text-center flex flex-col items-center justify-center max-w-xl mx-auto space-y-5 my-12 backdrop-blur-sm">
-          <div className="p-5 bg-primary/10 text-primary rounded-2xl border border-primary/20 shadow-lg shadow-primary/5 animate-bounce">
+          <div className="p-5 bg-primary/10 text-primary rounded-2xl border border-primary/20 shadow-lg shadow-primary/5">
             <Package size={40} />
           </div>
           <div className="space-y-2">
@@ -98,10 +99,11 @@ export function Batches() {
                 <motion.div 
                   key={batch.id} 
                   layout
-                  initial={{ opacity: 0, scale: 0.9, y: 15 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -15, transition: { duration: 0.15 } }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                  variants={cardListVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={motionTransition}
                   className={`bg-card/50 border p-6 sm:p-8 rounded-2xl sm:rounded-3xl hover:border-primary/50 transition flex flex-col justify-between ${
                     isHighMortality ? 'border-rose-500/30' : 'border-border'
                   }`}
@@ -115,7 +117,7 @@ export function Batches() {
                         <button 
                           onClick={() => updateBatchStatus({ id: batch.id, status: batch.status === 'ACTIVE' ? 'CLOSED' : 'ACTIVE' })}
                           disabled={isUpdatingStatus || (batch.status === 'CLOSED' && batch.actualQuantity <= 0)}
-                          className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed ${
+                          className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                             batch.status === 'ACTIVE' 
                               ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/20' 
                               : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border border-rose-500/20'
@@ -197,7 +199,7 @@ export function Batches() {
                     <button
                       onClick={() => setSelectedLossBatch(batch)}
                       disabled={batch.status === 'CLOSED'}
-                      className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white disabled:bg-secondary/80 disabled:text-muted rounded-xl transition text-sm font-bold flex items-center justify-center gap-2 active:scale-95 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-md"
+                      className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white disabled:bg-secondary/80 disabled:text-muted rounded-xl transition-colors text-sm font-bold flex items-center justify-center gap-2 disabled:cursor-not-allowed shadow-md"
                       title={batch.status === 'CLOSED' ? 'Lote fechado não registra mortes' : 'Registrar uma nova morte de ave'}
                     >
                       <Skull size={16} /> Registrar Morte
@@ -205,7 +207,7 @@ export function Batches() {
                     
                     <button
                       onClick={() => setSelectedHistoryBatch(batch)}
-                      className="w-full py-2.5 bg-secondary hover:bg-secondary/80 text-foreground rounded-xl transition text-xs font-semibold flex items-center justify-center gap-2 border border-border active:scale-95"
+                      className="w-full py-2.5 bg-secondary hover:bg-secondary/80 text-foreground rounded-xl transition-colors text-xs font-semibold flex items-center justify-center gap-2 border border-border"
                       title="Ver todas as mortes já registradas e corrigir erros"
                     >
                       <History size={14} className="text-muted" /> Ver Histórico de Perdas

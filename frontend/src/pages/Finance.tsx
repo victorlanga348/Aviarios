@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useFinance } from '../hooks/useFinance';
 import { useBatches } from '../hooks/useBatches';
 import { LossModal } from '../components/Finance/LossModal';
@@ -9,6 +9,7 @@ import { Zap, Beef, Trash2, Calendar, ClipboardList } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { cardListVariants, motionTransition, tableRowVariants } from '../lib/animations';
 
 export function Finance() {
   const queryClient = useQueryClient();
@@ -35,17 +36,13 @@ export function Finance() {
     isProcessing 
   } = useFinance(selectedMonth, selectedYear);
 
-  useEffect(() => {
-    if (batches.length > 0 && !selectedBatchId) {
-      setSelectedBatchId(batches[0].id);
-    }
-  }, [batches, selectedBatchId]);
+  const activeBatchId = selectedBatchId || batches[0]?.id || '';
 
   const { data: batchExpenses = [], isLoading: isLoadingBatchExpenses } = useQuery({
-    queryKey: ['batch-expenses', selectedBatchId],
+    queryKey: ['batch-expenses', activeBatchId],
     queryFn: async () => {
-      if (!selectedBatchId) return [];
-      const response = await api.get(`/batch-expenses/${selectedBatchId}`);
+      if (!activeBatchId) return [];
+      const response = await api.get(`/batch-expenses/${activeBatchId}`);
       return response.data as Array<{
         id: string;
         type: 'RACAO' | 'VACINA';
@@ -54,7 +51,7 @@ export function Finance() {
         createdAt: string;
       }>;
     },
-    enabled: !!selectedBatchId
+    enabled: !!activeBatchId
   });
 
   const totalRacao = batchExpenses
@@ -68,80 +65,35 @@ export function Finance() {
   const totalBatch = totalRacao + totalVacina;
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-8 rounded-[2rem] border border-border shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-3xl -mr-32 -mt-32"></div>
-        <div className="relative z-10">
-          <p className="text-primary font-black uppercase text-[10px] tracking-widest mb-1">Gestão de Fluxo</p>
-          <h2 className="text-3xl font-black flex items-center gap-3 text-foreground">Financeiro e Custos</h2>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-black text-foreground">Financeiro</h2>
+          <p className="text-sm text-muted mt-1">Contas mensais e insumos por lote.</p>
         </div>
-        <div className="flex flex-wrap gap-4 relative z-10">
+        <div className="flex flex-wrap gap-3">
           <button 
             onClick={() => setIsBatchExpenseModalOpen(true)}
-            className="bg-primary hover:bg-emerald-500 text-white px-6 py-4 rounded-2xl flex items-center gap-2 font-black transition-all shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 text-xs uppercase tracking-widest"
+            className="bg-primary hover:bg-emerald-500 text-white px-4 py-3 rounded-xl flex items-center gap-2 font-bold transition-colors text-sm"
           >
-            <Beef size={18} /> Lançar Insumo
+            <Beef size={18} /> Novo insumo
           </button>
           <button 
             onClick={() => setIsFixedExpenseModalOpen(true)}
-            className="bg-secondary hover:bg-secondary/80 text-foreground px-6 py-4 rounded-2xl flex items-center gap-2 font-black transition-all backdrop-blur-md hover:scale-105 active:scale-95 text-xs uppercase tracking-widest border border-border"
+            className="bg-secondary hover:bg-secondary/80 text-foreground px-4 py-3 rounded-xl flex items-center gap-2 font-bold transition-colors text-sm border border-border"
           >
-            <Zap size={18} /> Conta Mensal
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card Despesa Fixa Rápida */}
-        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl hover:border-yellow-500/30 transition-all group">
-          <div className="flex items-center justify-between mb-8">
-            <div className="p-4 rounded-2xl bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shadow-lg shadow-yellow-500/5 group-hover:scale-110 transition-transform">
-              <Zap size={32} />
-            </div>
-            <div className="text-right">
-              <p className="text-muted text-[10px] uppercase font-black tracking-widest">Categoria</p>
-              <p className="text-foreground font-bold">Operacional</p>
-            </div>
-          </div>
-          <h3 className="text-xl font-black text-foreground mb-2">Contas Mensais</h3>
-          <p className="text-muted text-sm mb-8 leading-relaxed">Gerencie gastos recorrentes como luz, água, internet e manutenção básica das instalações.</p>
-          <button 
-            onClick={() => setIsFixedExpenseModalOpen(true)}
-            className="w-full py-4 bg-secondary rounded-2xl hover:bg-secondary/80 transition-colors text-foreground text-sm font-bold border border-border"
-          >
-            Lançar Conta Mensal
-          </button>
-        </div>
-
-        {/* Card Insumos de Lote */}
-        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl hover:border-primary/30 transition-all group">
-          <div className="flex items-center justify-between mb-8">
-            <div className="p-4 rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-lg shadow-primary/5 group-hover:scale-110 transition-transform">
-              <Beef size={32} />
-            </div>
-            <div className="text-right">
-              <p className="text-muted text-[10px] uppercase font-black tracking-widest">Categoria</p>
-              <p className="text-foreground font-bold">Insumos</p>
-            </div>
-          </div>
-          <h3 className="text-xl font-black text-foreground mb-2">Ração e Vacinas</h3>
-          <p className="text-muted text-sm mb-8 leading-relaxed">Registre a compra de ração, medicamentos e vacinas que são aplicados diretamente em um lote específico.</p>
-          <button 
-            onClick={() => setIsBatchExpenseModalOpen(true)}
-            className="w-full py-4 bg-secondary rounded-2xl hover:bg-secondary/80 transition-colors text-foreground text-sm font-bold border border-border"
-          >
-            Registrar Insumo de Lote
+            <Zap size={18} /> Nova conta
           </button>
         </div>
       </div>
 
       {/* Abas de Navegação das Contas/Custos */}
-      <div className="flex bg-secondary/35 p-1.5 rounded-2xl border border-border/80 max-w-md shadow-inner backdrop-blur-sm">
+      <div className="flex bg-secondary/35 p-1.5 rounded-2xl border border-border/80 max-w-md">
         <button
           onClick={() => setActiveTab('FIXED')}
           className={`flex-1 py-3 rounded-xl text-[10px] uppercase font-black tracking-wider transition-all flex items-center justify-center gap-2 ${
             activeTab === 'FIXED'
-              ? 'bg-card text-foreground border border-border shadow-md scale-[1.02]'
+              ? 'bg-card text-foreground border border-border'
               : 'text-muted hover:text-foreground'
           }`}
         >
@@ -151,7 +103,7 @@ export function Finance() {
           onClick={() => setActiveTab('BATCH')}
           className={`flex-1 py-3 rounded-xl text-[10px] uppercase font-black tracking-wider transition-all flex items-center justify-center gap-2 ${
             activeTab === 'BATCH'
-              ? 'bg-card text-foreground border border-border shadow-md scale-[1.02]'
+              ? 'bg-card text-foreground border border-border'
               : 'text-muted hover:text-foreground'
           }`}
         >
@@ -161,19 +113,19 @@ export function Finance() {
 
       {activeTab === 'FIXED' ? (
         /* Lista de Contas Mensais Detalhadas */
-        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
+        <div className="bg-card border border-border p-5 sm:p-6 rounded-2xl overflow-hidden">
           <div className="flex flex-col md:grid md:grid-cols-3 md:items-center gap-6 mb-8">
             <div className="md:col-span-1">
               <h3 className="text-xl font-black text-foreground flex items-center gap-2">
                 <Calendar className="text-primary" size={20} /> Detalhamento de Contas Mensais
               </h3>
-              <p className="text-muted text-xs mt-1">Acompanhe e gerencie todos os custos fixos mensais do seu negócio.</p>
+              <p className="text-muted text-xs mt-1">Custos fixos do mês selecionado.</p>
             </div>
-            <div className="md:col-span-1 flex justify-center items-center gap-3">
+            <div className="md:col-span-1 flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 min-w-0">
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto"
+                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto min-w-0"
               >
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -184,7 +136,7 @@ export function Finance() {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto"
+                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto min-w-0"
               >
                 {Array.from({ length: 5 }, (_, i) => {
                   const yearOption = new Date().getFullYear() - 2 + i;
@@ -203,14 +155,14 @@ export function Finance() {
           {fixedExpensesData && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
-                <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Total Acumulado</p>
-                <p className="text-2xl font-black text-foreground">
+                <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Total</p>
+                <p className="text-xl min-[360px]:text-2xl font-black text-foreground break-words">
                   {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(fixedExpensesData.total)}
                 </p>
               </div>
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
-                <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Custo Diário Médio (Prorrogado)</p>
-                <p className="text-2xl font-black text-primary">
+                <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Média diária</p>
+                <p className="text-xl min-[360px]:text-2xl font-black text-primary break-words">
                   {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(fixedExpensesData.dailyValue)}
                 </p>
               </div>
@@ -233,10 +185,11 @@ export function Finance() {
                     <motion.div 
                       key={expense.id} 
                       layout
-                      initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -15, transition: { duration: 0.15 } }}
-                      transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                      variants={cardListVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={motionTransition}
                       className="bg-secondary/20 p-5 rounded-2xl border border-border flex justify-between items-center relative group"
                     >
                       <div className="space-y-1">
@@ -277,10 +230,11 @@ export function Finance() {
                         <motion.tr 
                           key={expense.id} 
                           layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, x: -30, transition: { duration: 0.18 } }}
-                          transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                          variants={tableRowVariants}
+                          initial="initial"
+                          animate="animate"
+                          exit="exit"
+                          transition={motionTransition}
                           className="hover:bg-secondary/20 transition-colors group"
                         >
                           <td className="py-4 font-bold text-foreground text-sm">{expense.description}</td>
@@ -310,20 +264,20 @@ export function Finance() {
         </div>
       ) : (
         /* Lista de Insumos (Ração e Vacina) de Lotes Detalhadas */
-        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
+        <div className="bg-card border border-border p-5 sm:p-6 rounded-2xl overflow-hidden">
           <div className="flex flex-col md:grid md:grid-cols-3 md:items-center gap-6 mb-8">
             <div className="md:col-span-1">
               <h3 className="text-xl font-black text-foreground flex items-center gap-2">
                 <ClipboardList className="text-primary" size={20} /> Detalhamento de Insumos do Lote
               </h3>
-              <p className="text-muted text-xs mt-1">Veja exatamente quanto e onde investiu em ração e medicamentos para cada lote de aves.</p>
+              <p className="text-muted text-xs mt-1">Custos de ração, medicamentos e vacinas por lote.</p>
             </div>
-            <div className="md:col-span-1 flex justify-center items-center gap-3">
+            <div className="md:col-span-1 flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 min-w-0">
               <span className="text-muted text-[10px] uppercase font-black tracking-wider hidden sm:inline">Lote:</span>
               <select
-                value={selectedBatchId}
+                value={activeBatchId}
                 onChange={(e) => setSelectedBatchId(e.target.value)}
-                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto min-w-[220px]"
+                className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto min-w-0"
               >
                 {batches.length === 0 ? (
                   <option value="">Nenhum Lote Encontrado</option>
@@ -340,23 +294,23 @@ export function Finance() {
           </div>
 
           {/* Resumo Rápido de Custos de Insumo */}
-          {selectedBatchId && (
+          {activeBatchId && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Total de Insumos</p>
-                <p className="text-2xl font-black text-foreground">
+                <p className="text-xl min-[360px]:text-2xl font-black text-foreground break-words">
                   {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(totalBatch)}
                 </p>
               </div>
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Ração Consumida</p>
-                <p className="text-2xl font-black text-primary">
+                <p className="text-xl min-[360px]:text-2xl font-black text-primary break-words">
                   {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(totalRacao)}
                 </p>
               </div>
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Medicamentos e Vacinas</p>
-                <p className="text-2xl font-black text-yellow-500">
+                <p className="text-xl min-[360px]:text-2xl font-black text-yellow-500 break-words">
                   {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(totalVacina)}
                 </p>
               </div>
@@ -366,7 +320,7 @@ export function Finance() {
           {/* Tabela ou estado vazio */}
           {isLoadingBatchExpenses ? (
             <div className="py-16 text-center text-muted font-bold text-sm">Carregando insumos do lote...</div>
-          ) : !selectedBatchId ? (
+          ) : !activeBatchId ? (
             <div className="py-16 text-center border-2 border-dashed border-border rounded-2xl bg-secondary/10">
               <p className="text-muted text-sm font-bold">Por favor, selecione ou crie um lote para visualizar os insumos lançados.</p>
             </div>
@@ -383,10 +337,11 @@ export function Finance() {
                     <motion.div 
                       key={expense.id} 
                       layout
-                      initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -15, transition: { duration: 0.15 } }}
-                      transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                      variants={cardListVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={motionTransition}
                       className="bg-secondary/20 p-5 rounded-2xl border border-border flex justify-between items-center relative group"
                     >
                       <div className="space-y-1">
@@ -439,10 +394,11 @@ export function Finance() {
                         <motion.tr 
                           key={expense.id} 
                           layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, x: -30, transition: { duration: 0.18 } }}
-                          transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                          variants={tableRowVariants}
+                          initial="initial"
+                          animate="animate"
+                          exit="exit"
+                          transition={motionTransition}
                           className="hover:bg-secondary/20 transition-colors group"
                         >
                           <td className="py-4">
@@ -524,7 +480,7 @@ export function Finance() {
               await removeFixedExpense(expenseToDelete.id);
             } else {
               await removeBatchExpense(expenseToDelete.id);
-              queryClient.invalidateQueries({ queryKey: ['batch-expenses', selectedBatchId] });
+              queryClient.invalidateQueries({ queryKey: ['batch-expenses', activeBatchId] });
             }
             setExpenseToDelete(null);
           }

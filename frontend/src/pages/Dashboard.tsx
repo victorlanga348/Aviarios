@@ -1,12 +1,13 @@
 import { useDashboard } from '../hooks/useDashboard';
 import { MetricCard } from '../components/Dashboard/MetricCard';
-import { Bird, Wallet, TrendingUp, Receipt, ShoppingCart, Package, Sparkles } from 'lucide-react';
+import { Bird, Wallet, TrendingUp, Receipt, ShoppingCart, Package } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSales } from '../hooks/useSales';
 import { useBatches } from '../hooks/useBatches';
 import type { Sale, Batch } from '../@types';
 import { useGlobalDate } from '../contexts/DateContext';
 import { motion } from 'framer-motion';
+import { motionTransition, pageVariants } from '../lib/animations';
 
 export function Dashboard() {
   const { data, isLoading: isLoadingSummary } = useDashboard();
@@ -23,7 +24,7 @@ export function Dashboard() {
         <div className="h-24 bg-secondary/50 rounded-3xl animate-pulse border border-border"></div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-card border border-border p-6 rounded-[2rem] h-40 animate-pulse"></div>
+            <div key={i} className="bg-card border border-border p-6 rounded-2xl h-40 animate-pulse"></div>
           ))}
         </div>
       </div>
@@ -38,16 +39,17 @@ export function Dashboard() {
     <>
       <motion.div
         key={`${queryMonth}-${queryYear}`}
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      transition={motionTransition}
       className="space-y-4 sm:space-y-6"
     >
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-2 p-2 rounded-2xl transition-all duration-300">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-2">
         <div>
-          <p className="text-primary font-bold tracking-widest uppercase text-[8px] sm:text-[10px] mb-0.5 sm:mb-1">Painel de Controle</p>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Olá, <span className="bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent dark:to-emerald-400">{user?.name?.split(' ')[0]}!</span>
+            Olá, {user?.name?.split(' ')[0] || 'utilizador'}
           </h1>
           <p className="text-muted text-xs sm:text-sm font-medium">{formattedDate}</p>
         </div>
@@ -59,30 +61,28 @@ export function Dashboard() {
           value={data?.totalLiveBirds || 0} 
           icon={<Bird size={24} />} 
           color="blue"
-          description="Aves que ainda estão no aviário hoje."
+          description="Em stock"
         />
-        <div className="rounded-[2rem] transition-all duration-300">
-          <MetricCard 
-            title="Lucro Real" 
-            value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.realProfit || 0)} 
-            icon={<TrendingUp size={24} />} 
-            color="green"
-            description="O dinheiro que sobrou limpo após pagar as despesas."
-          />
-        </div>
+        <MetricCard 
+          title="Lucro Real" 
+          value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.realProfit || 0)} 
+          icon={<TrendingUp size={24} />} 
+          color="green"
+          description="Receita menos custos"
+        />
         <MetricCard 
           title="Contas a Receber" 
           value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.totalToReceive || 0)} 
           icon={<Wallet size={24} />} 
           color="yellow"
-          description="Dinheiro de vendas a fiado que os clientes ainda devem."
+          description="Saldo em aberto"
         />
         <MetricCard 
           title="Saldo de Caixa" 
           value={new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(data?.cashBalance || 0)} 
           icon={<Receipt size={24} />} 
           color="red"
-          description="Todo o dinheiro vivo que você tem na mão agora."
+          description="Entradas menos saídas"
         />
       </div>
 
@@ -108,9 +108,9 @@ export function Dashboard() {
         if (alerts.length === 0) return null;
 
         return (
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-[2rem] p-6 shadow-sm">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5">
             <h3 className="font-bold flex items-center gap-2 text-amber-600 mb-4">
-              <Sparkles size={18} className="animate-pulse" /> Atenção: Compromissos para Hoje e Amanhã
+              Compromissos para hoje e amanhã
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {alerts.map((sale: Sale) => {
@@ -148,7 +148,7 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Vendas Recentes */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl transition-all duration-300">
+        <div className="lg:col-span-2 bg-card border border-border rounded-2xl overflow-hidden">
           <div className="p-6 border-b border-border flex justify-between items-center bg-secondary/30">
             <h3 className="font-bold flex items-center gap-2 text-foreground">
               <ShoppingCart size={18} className="text-primary" /> Vendas Recentes
@@ -191,12 +191,11 @@ export function Dashboard() {
         </div>
 
         {/* Lotes Ativos */}
-        <div className="bg-card border border-border rounded-[2rem] p-6 shadow-2xl relative overflow-hidden transition-all duration-300">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-16 -mt-16"></div>
-          <h3 className="font-bold flex items-center gap-2 mb-6 relative z-10 text-foreground">
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <h3 className="font-bold flex items-center gap-2 mb-6 text-foreground">
             <Package size={18} className="text-primary" /> Stock de Lotes
           </h3>
-          <div className="space-y-6 relative z-10">
+          <div className="space-y-6">
             {batches?.filter(b => b.status === 'ACTIVE').slice(0, 4).map((batch: Batch) => {
               const percentage = Math.round((batch.actualQuantity / batch.initialQuantity) * 100);
               return (
@@ -207,7 +206,7 @@ export function Dashboard() {
                   </div>
                   <div className="h-2 bg-secondary rounded-full overflow-hidden border border-border">
                     <div 
-                      className="h-full bg-gradient-to-r from-primary to-emerald-400 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                      className="h-full bg-primary transition-all duration-500 ease-out"
                       style={{ width: `${percentage}%` }}
                     ></div>
                   </div>

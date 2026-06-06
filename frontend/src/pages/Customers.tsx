@@ -5,6 +5,7 @@ import { DeleteConfirmModal } from '../components/Finance/DeleteConfirmModal';
 import { Users, Phone, AlertCircle, CheckCircle2, Search, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { cardListVariants, motionTransition } from '../lib/animations';
 
 export function Customers() {
   const { customers, isLoading, deleteCustomer, isDeleting } = useCustomers();
@@ -64,12 +65,13 @@ export function Customers() {
               <motion.div 
                 key={customer.id} 
                 layout
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -15, transition: { duration: 0.15 } }}
-                transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                variants={cardListVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={motionTransition}
                 onClick={() => setSelectedClient({ id: customer.id, name: customer.name })}
-                className="bg-card border border-border hover:border-primary/50 transition cursor-pointer p-5 rounded-2xl flex flex-col gap-4 shadow-[var(--shadow)] hover:scale-[1.02] active:scale-95 group relative"
+                className="bg-card border border-border hover:border-primary/50 transition cursor-pointer p-5 rounded-2xl flex flex-col gap-4 shadow-[var(--shadow)] group relative"
               >
                 <div className="flex justify-between items-start">
                   <div>

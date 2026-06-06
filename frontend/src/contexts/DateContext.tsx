@@ -15,8 +15,11 @@ export function DateProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const changeMonth = (offset: number) => {
-    const newDate = new Date(selectedDate.setMonth(selectedDate.getMonth() + offset));
-    setSelectedDate(new Date(newDate));
+    setSelectedDate(current => {
+      const nextDate = new Date(current);
+      nextDate.setMonth(nextDate.getMonth() + offset);
+      return nextDate;
+    });
   };
 
   return (
@@ -32,4 +35,5 @@ export function DateProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useGlobalDate = () => useContext(DateContext);

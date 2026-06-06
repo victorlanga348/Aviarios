@@ -18,6 +18,7 @@ import {
   User,
  } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fastTransition, motionTransition, overlayVariants, pageVariants } from '../../lib/animations';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,7 +28,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { formattedDate, changeMonth } = useGlobalDate();
   const location = useLocation();
-  const [prevIndex, setPrevIndex] = useState(0);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -51,27 +51,23 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const routes = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/batches', label: 'Lotes', icon: Package },
-    { path: '/sales', label: 'Vendas (PDV)', icon: ShoppingCart },
+    { path: '/sales', label: 'Vendas', icon: ShoppingCart },
     { path: '/customers', label: 'Clientes', icon: Users },
     { path: '/finance', label: 'Financeiro', icon: Zap },
     { path: '/reports', label: 'Relatórios', icon: History },
-    { path: '/guide', label: 'Manual', icon: BookOpen },
+    { path: '/guide', label: 'Ajuda', icon: BookOpen },
     { path: '/perfil', label: 'Perfil', icon: User },
     ...(user?.role === 'ADMIN' ? [{ path: '/admin', label: 'Painel Admin', icon: ShieldAlert }] : []),
   ];
 
-  const currentIndex = routes.findIndex(r => r.path === location.pathname);
-  const direction = currentIndex > prevIndex ? 30 : -30;
-
   const handleNavClick = () => {
-    setPrevIndex(currentIndex);
     setIsSidebarOpen(false);
   };
 
   const getNavLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all group relative ${
       isActive 
-        ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+        ? 'bg-primary text-white' 
         : 'hover:bg-secondary/50 text-muted hover:text-foreground'
     }`;
 
@@ -93,9 +89,11 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            variants={overlayVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={fastTransition}
             onClick={() => setIsSidebarOpen(false)}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
           />
@@ -104,19 +102,18 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <AnimatePresence>
-        {(isSidebarOpen || window.innerWidth >= 768) && (
-          <motion.aside 
+        <motion.aside 
             initial={{ x: -280 }}
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             className={`
-              fixed top-0 left-0 z-50 w-72 h-[100dvh] bg-card overflow-y-auto scrollbar-hide
+              fixed top-0 left-0 z-50 w-72 h-dvh bg-card overflow-y-auto scrollbar-hide
               border-r border-border p-6 flex flex-col gap-6 md:gap-8 transition-colors duration-300
               ${!isSidebarOpen && 'hidden md:flex'}
             `}
           >
             <div className="flex items-center gap-3 px-2">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                 <Package className="text-white" size={24} />
               </div>
               <h1 className="text-xl font-black italic tracking-tighter">AVIÁRIO<span className="text-primary">PRO</span></h1>
@@ -136,8 +133,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
 
-          </motion.aside>
-        )}
+        </motion.aside>
       </AnimatePresence>
 
       <div className="flex-1 md:pl-72 flex flex-col min-w-0">
@@ -167,13 +163,14 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
-          <AnimatePresence mode="wait" custom={direction}>
+          <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: direction }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -direction }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={motionTransition}
             >
               {children}
             </motion.div>

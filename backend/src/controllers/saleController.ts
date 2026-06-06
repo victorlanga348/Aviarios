@@ -1,8 +1,7 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { registerSale, deliverScheduledSale, listSales, listAllSales, listClientSales, deleteSale, getClientDebt } from "../services/saleService.js";
-import { getErrorMessage } from '../types/express.js';
 
-const registerSaleController = async (req: Request, res: Response) => {
+const registerSaleController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { 
             batchId, 
@@ -47,66 +46,66 @@ const registerSaleController = async (req: Request, res: Response) => {
         );
         res.status(201).json(sale);
     } catch (error: unknown) {
-        res.status(500).json({ message: getErrorMessage(error) });
+        next(error);
     }
 };
 
-const deliverScheduledSaleController = async (req: Request, res: Response) => {
+const deliverScheduledSaleController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params as { id: string };
         const result = await deliverScheduledSale(req.userId!, id);
         res.status(200).json(result);
     } catch (error: unknown) {
-        res.status(500).json({ message: getErrorMessage(error) });
+        next(error);
     }
 };
 
-const deleteSaleController = async (req: Request, res: Response) => {
+const deleteSaleController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params as { id: string };
         const result = await deleteSale(req.userId!, id);
         res.status(200).json(result);
     } catch (error: unknown) {
-        res.status(500).json({ message: getErrorMessage(error) });
+        next(error);
     }
 };
 
-const listSalesController = async (req: Request, res: Response) => {
+const listSalesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const batchId = req.params.batchId as string;
         const sales = await listSales(req.userId!, batchId);
         res.status(200).json(sales);
     } catch (error: unknown) {
-        res.status(500).json({ message: getErrorMessage(error) });
+        next(error);
     }
 };
 
-const listAllSalesController = async (req: Request, res: Response) => {
+const listAllSalesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const sales = await listAllSales(req.userId!);
         res.status(200).json(sales);
     } catch (error: unknown) {
-        res.status(500).json({ message: getErrorMessage(error) });
+        next(error);
     }
 };
 
-const listClientSalesController = async (req: Request, res: Response) => {
+const listClientSalesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const clientId = req.params.clientId as string;
         const clientSales = await listClientSales(req.userId!, clientId);
         res.status(200).json(clientSales);
     } catch (error: unknown) {
-        res.status(500).json({ message: getErrorMessage(error) });
+        next(error);
     }
 };
 
-const getClientDebtController = async (req: Request, res: Response) => {
+const getClientDebtController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { clientId } = req.params as { clientId: string };
         const debt = await getClientDebt(req.userId!, clientId);
         res.status(200).json(debt);
     } catch (error: unknown) {
-        res.status(500).json({ message: getErrorMessage(error) });
+        next(error);
     }
 };
 

@@ -5,6 +5,7 @@ import { saleSchema, type SaleFormData } from '../../lib/validations/sale';
 import type { Batch, Customer } from '../../@types';
 import { X, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fastTransition, feedbackVariants, modalVariants, motionTransition, overlayVariants } from '../../lib/animations';
 
 interface Props {
   isOpen: boolean;
@@ -62,27 +63,21 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
     <AnimatePresence>
       {isOpen && (
         <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ 
-            opacity: 0,
-            transition: { duration: 0.18, ease: 'easeInOut' }
-          }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
+          variants={overlayVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={motionTransition}
+          className="w-full fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start lg:items-center justify-center p-4 z-50 overflow-x-hidden overflow-y-auto"
           onClick={onClose}
         >
           <motion.div 
-            initial={{ scale: 0.92, opacity: 0, y: 35 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ 
-              scale: 0.96, 
-              opacity: 0, 
-              y: 20,
-              transition: { duration: 0.15, ease: 'easeInOut' }
-            }}
-            transition={{ type: 'spring', damping: 26, stiffness: 280, mass: 0.8 }}
-            className="bg-card border border-border p-5 md:p-8 rounded-2xl w-full max-w-2xl shadow-2xl my-auto"
+            variants={modalVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={fastTransition}
+            className="bg-card border border-border p-5 md:p-8 rounded-2xl w-full max-w-2xl max-h-[calc(100dvh-2rem)] shadow-2xl my-4 lg:my-0 overflow-y-auto overflow-x-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
@@ -92,9 +87,9 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
               <button onClick={onClose} className="text-muted hover:text-foreground transition-colors"><X size={24} /></button>
             </div>
 
-            <form onSubmit={handleSubmit(handleFormSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
+            <form onSubmit={handleSubmit(handleFormSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
+              <div className="space-y-4 min-w-0">
+                <div className="min-w-0">
                   <label className="text-xs text-muted uppercase">Lote de Origem</label>
                   <select {...register('batchId')} className="w-full bg-background border border-border p-3 rounded-lg outline-none focus:border-primary">
                     <option value="">Selecione o Lote</option>
@@ -104,7 +99,7 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
                   </select>
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <label className="text-xs text-muted uppercase">Cliente (Existente)</label>
                   <select {...register('customerId')} className="w-full bg-background border border-border p-3 rounded-lg outline-none focus:border-primary">
                     <option value="">Selecione o Cliente</option>
@@ -119,47 +114,49 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
                   <div className="flex-grow border-t border-border"></div>
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <label className="text-xs text-muted uppercase">Nome do Novo Cliente</label>
                   <input {...register('customerName')} className="w-full bg-background border border-border p-3 rounded-lg outline-none focus:border-primary" placeholder="Digite o nome completo" />
                   {errors.customerName && <p className="text-red-500 text-[10px] mt-1">{errors.customerName.message}</p>}
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <label className="text-xs text-muted uppercase">Telefone do Novo Cliente</label>
                   <input {...register('customerPhone')} className="w-full bg-background border border-border p-3 rounded-lg outline-none focus:border-primary" placeholder="84... ou 85..." />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+                  <div className="min-w-0">
                     <label className="text-xs text-muted uppercase">Quantidade</label>
                     <input type="number" placeholder="0" {...register('quantity', { valueAsNumber: true })} onFocus={(e) => e.target.select()} className="w-full bg-background border border-border p-3 rounded-lg" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <label className="text-xs text-muted uppercase">Preço Unit.</label>
                     <input type="number" step="0.01" placeholder="0.00" {...register('unitPrice', { valueAsNumber: true })} onFocus={(e) => e.target.select()} className="w-full bg-background border border-border p-3 rounded-lg" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 bg-background border border-border p-3 rounded-lg h-[46px] self-end">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+                  <div className="flex items-center gap-3 bg-background border border-border p-3 rounded-lg h-[46px] self-end min-w-0">
                     <input type="checkbox" {...register('isScheduled')} id="isScheduled" className="w-4 h-4 accent-primary rounded cursor-pointer" />
-                    <label htmlFor="isScheduled" className="text-xs text-foreground uppercase font-bold cursor-pointer">Agendar Entrega?</label>
+                    <label htmlFor="isScheduled" className="text-xs text-foreground uppercase font-bold cursor-pointer min-w-0">Agendar Entrega?</label>
                   </div>
                   {watch('isScheduled') ? (
-                    <div>
+                    <div className="min-w-0">
                       <label className="text-xs text-muted uppercase">Data da Entrega</label>
-                      <input type="date" {...register('scheduledDeliveryDate')} className="w-full bg-background border border-border p-3 rounded-lg outline-none focus:border-primary" required={watch('isScheduled')} />
+                      <div className="date-input-shell bg-background border border-border rounded-lg focus-within:border-primary transition-colors">
+                        <input type="date" {...register('scheduledDeliveryDate')} className="h-11 px-3 outline-none text-sm text-foreground" required={watch('isScheduled')} />
+                      </div>
                     </div>
-                  ) : <div></div>}
+                  ) : <div className="hidden sm:block"></div>}
                 </div>
               </div>
 
-              <div className="bg-background/50 p-6 rounded-xl border border-border flex flex-col justify-between">
+              <div className="bg-background/50 p-5 sm:p-6 rounded-xl border border-border flex flex-col justify-between min-w-0 overflow-hidden">
                 <div className="space-y-4">
-                  <div className="flex justify-between">
+                  <div className="flex flex-col min-[360px]:flex-row min-[360px]:justify-between gap-1">
                     <span className="text-muted">Total da Venda:</span>
-                    <span className="text-xl font-bold">MZN {total.toFixed(2)}</span>
+                    <span className="text-xl font-bold break-words">MZN {total.toFixed(2)}</span>
                   </div>
                   
                   <div>
@@ -167,21 +164,25 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
                     <input type="number" step="0.01" placeholder="0.00" {...register('amountPaid', { valueAsNumber: true })} onFocus={(e) => e.target.select()} className="w-full bg-primary/10 border border-primary/30 p-3 rounded-lg text-primary text-xl font-bold outline-none" />
                   </div>
 
-                  <div className="flex justify-between p-3 bg-red-500/10 rounded-lg">
+                  <div className="flex flex-col min-[360px]:flex-row min-[360px]:justify-between gap-1 p-3 bg-red-500/10 rounded-lg">
                     <span className="text-red-500 text-sm">Dívida (Fiado):</span>
-                    <span className="text-red-500 font-bold">MZN {balance > 0 ? balance.toFixed(2) : '0.00'}</span>
+                    <span className="text-red-500 font-bold break-words">MZN {balance > 0 ? balance.toFixed(2) : '0.00'}</span>
                   </div>
 
                   <AnimatePresence>
                     {balance > 0 && (
                       <motion.div 
-                        initial={{ opacity: 0, height: 0 }} 
-                        animate={{ opacity: 1, height: 'auto' }} 
-                        exit={{ opacity: 0, height: 0 }}
+                        variants={feedbackVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={fastTransition}
                         className="pt-2"
                       >
                         <label className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 mb-1 block">Data Limite Pagamento (Cobrança)</label>
-                        <input type="date" {...register('debtDueDate')} className="w-full bg-background border border-red-500/30 p-3 rounded-lg outline-none focus:border-red-500/80 text-sm" />
+                        <div className="date-input-shell bg-background border border-red-500/30 rounded-lg focus-within:border-red-500/80 transition-colors">
+                          <input type="date" {...register('debtDueDate')} className="h-11 px-3 outline-none text-sm text-foreground" />
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>

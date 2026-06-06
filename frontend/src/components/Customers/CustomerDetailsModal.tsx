@@ -3,6 +3,7 @@ import { useClientSales, useCustomers } from '../../hooks/useCustomers';
 import { X, Receipt, DollarSign, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fastTransition, modalVariants, motionTransition, overlayVariants } from '../../lib/animations';
 
 interface Props {
   isOpen: boolean;
@@ -33,27 +34,21 @@ export function CustomerDetailsModal({ isOpen, onClose, clientId, clientName }: 
     <AnimatePresence>
       {isOpen && clientId && (
         <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ 
-            opacity: 0,
-            transition: { duration: 0.18, ease: 'easeInOut' }
-          }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
+          variants={overlayVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={motionTransition}
+          className="w-full fixed inset-0 bg-black/70 flex items-start justify-center p-4 z-50 overflow-y-auto overflow-x-hidden"
           onClick={onClose}
         >
           <motion.div 
-            initial={{ scale: 0.92, opacity: 0, y: 35 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ 
-              scale: 0.96, 
-              opacity: 0, 
-              y: 20,
-              transition: { duration: 0.15, ease: 'easeInOut' }
-            }}
-            transition={{ type: 'spring', damping: 26, stiffness: 280, mass: 0.8 }}
-            className="bg-card border border-border p-5 md:p-8 rounded-2xl w-full max-w-3xl shadow-[var(--shadow)] my-auto"
+            variants={modalVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={fastTransition}
+            className="bg-card border border-border p-5 md:p-6 rounded-2xl w-full max-w-3xl max-h-[calc(100dvh-2rem)] my-4 overflow-y-auto overflow-x-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
@@ -71,7 +66,7 @@ export function CustomerDetailsModal({ isOpen, onClose, clientId, clientName }: 
                   <div className="text-center py-8 text-muted">Nenhuma venda registrada para este cliente.</div>
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto max-h-[60vh] p-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {clientData?.sales?.map(sale => (
                     <div key={sale.id} className={`p-4 rounded-xl border ${sale.balance > 0 ? 'border-rose-500/20 bg-rose-500/5' : 'border-emerald-500/20 bg-emerald-500/5'} flex flex-col gap-3`}>
                       
@@ -101,7 +96,7 @@ export function CustomerDetailsModal({ isOpen, onClose, clientId, clientName }: 
                           {payingSaleId === sale.id ? (
                             <form onSubmit={handleSubmit(onPay)} className="flex flex-col gap-3 mt-1">
                               <div>
-                                <label className="text-[10px] text-muted font-bold uppercase tracking-widest block mb-1 ml-1">Valor do Pagamento</label>
+                                <label className="text-xs text-muted font-medium block mb-1 ml-1">Valor do pagamento</label>
                                 <div className="relative">
                                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted font-bold text-sm">MZN</span>
                                   <input 

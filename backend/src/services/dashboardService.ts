@@ -35,6 +35,10 @@ async function getDashboardSummary(userId: string, month?: number, year?: number
     const salesMonth = await prisma.sale.findMany({
         where: {
             userId,
+            OR: [
+                { isScheduled: false },
+                { scheduledStatus: 'DELIVERED' }
+            ],
             date: {
                 gte: startOfMonth,
                 lte: endOfMonth

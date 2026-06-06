@@ -1,6 +1,7 @@
 import prisma from "../config/db.js";
 import { BatchStatus } from "@prisma/client";
 import { sanitize } from "../utils/sanitize.js";
+import { badRequest, conflict, notFound } from "../utils/httpError.js";
 
 async function registerSale(
     userId: string, 
@@ -19,8 +20,8 @@ async function registerSale(
             where: { id: batchId, userId }
         });
 
-        if (!batch) throw new Error('Lote não encontrado ou não pertence a este usuário');
-        if (batch.status === BatchStatus.CLOSED) throw new Error('O lote está fechado');
+        if (!batch) throw notFound('Lote não encontrado ou não pertence a este usuário');
+        if (batch.status === BatchStatus.CLOSED) throw conflict('O lote está fechado');
 
         // Lógica de Cliente: Tenta buscar por ID (UUID) ou Nome (Accent-insensitive e Case-insensitive)
         let customer;
@@ -70,14 +71,14 @@ async function registerSale(
             }
         }
 
-        if (!customer) throw new Error('Cliente não encontrado ou não pôde ser criado');
+        if (!customer) throw badRequest('Cliente não encontrado ou não pôde ser criado');
 
         // Se o preço unitário não foi passado, tenta usar o global
         let finalPrice = unitPrice;
         if (!finalPrice || finalPrice <= 0) {
             const config = await tx.configuration.findUnique({ where: { id: userId } });
             if (!config || config.birdSellingPrice <= 0) {
-                throw new Error('Preço de venda não fornecido e preço global não configurado.');
+                throw badRequest('Preço de venda não fornecido e preço global não configurado.');
             }
             finalPrice = config.birdSellingPrice;
         }
@@ -137,7 +138,7 @@ async function registerSale(
                     });
                 }
             } catch (error) {
-                throw new Error('Não foi possível realizar a venda: Lote inexistente, fechado ou sem estoque suficiente');
+                throw conflict('Não foi possível realizar a venda: Lote inexistente, fechado ou sem estoque suficiente');
             }
         }
 
@@ -151,9 +152,9 @@ async function deliverScheduledSale(userId: string, saleId: string) {
             where: { id: saleId, userId }
         });
 
-        if (!sale) throw new Error('Venda não encontrada ou não pertence a este usuário');
-        if (!sale.isScheduled) throw new Error('Esta venda não foi agendada');
-        if (sale.scheduledStatus !== 'PENDING') throw new Error('Esta venda já foi entregue');
+        if (!sale) throw notFound('Venda não encontrada ou não pertence a este usuário');
+        if (!sale.isScheduled) throw badRequest('Esta venda não foi agendada');
+        if (sale.scheduledStatus !== 'PENDING') throw conflict('Esta venda já foi entregue');
 
         try {
             const updatedBatch = await tx.batch.update({
@@ -175,7 +176,7 @@ async function deliverScheduledSale(userId: string, saleId: string) {
                 });
             }
         } catch (error) {
-            throw new Error('Estoque insuficiente no lote para concluir a entrega');
+            throw conflict('Estoque insuficiente no lote para concluir a entrega');
         }
 
         return await tx.sale.update({
@@ -191,7 +192,7 @@ async function deleteSale(userId: string, saleId: string) {
             where: { id: saleId, userId }
         });
 
-        if (!sale) throw new Error('Venda não encontrada ou não pertence a este usuário');
+        if (!sale) throw notFound('Venda não encontrada ou não pertence a este usuário');
 
         await tx.payment.deleteMany({
             where: { saleId }
@@ -225,7 +226,7 @@ async function listSales(userId: string, batchId: string) {
     });
 
     if (!batch) {
-        throw new Error('Batch not found or unauthorized');
+        throw notFound('Lote não encontrado ou não autorizado');
     }
 
     const sales = await prisma.sale.findMany({
@@ -275,7 +276,7 @@ async function listClientSales(userId: string, clientId: string) {
     });
 
     if (!clientWithSales) {
-        throw new Error('Client not found or unauthorized');
+        throw notFound('Cliente não encontrado ou não autorizado');
     }
 
     return clientWithSales;

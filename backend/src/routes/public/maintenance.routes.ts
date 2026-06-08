@@ -18,9 +18,25 @@ router.get("/", async (req, res) => {
 // Endpoint administrativo para atualizar configurações de manutenção
 router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const { isActive, estimatedTime, scheduledStart, durationHours, leadTimeHours } = req.body;
+        const {
+            isActive,
+            status,
+            type,
+            clientName,
+            equipment,
+            description,
+            estimatedTime,
+            scheduledStart,
+            durationHours,
+            leadTimeHours,
+        } = req.body;
         const config = await updateMaintenance({
             isActive: Boolean(isActive),
+            status,
+            type,
+            clientName,
+            equipment,
+            description,
             estimatedTime,
             scheduledStart,
             durationHours: durationHours ? Number(durationHours) : null,

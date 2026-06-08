@@ -19,6 +19,7 @@ import profileRoutes from './routes/private/profile.routes.js';
 import maintenanceRoutes from './routes/public/maintenance.routes.js';
 import { maintenanceMiddleware } from './middlewares/maintenance.js';
 import { env } from './config/env.js';
+import { ensureDefaultAdmin } from './services/startupService.js';
 
 const app = express();
 
@@ -39,6 +40,14 @@ app.use(cors({
     origin: env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : true,
     credentials: true,
 }));
+
+app.get('/api/health', (_req, res) => {
+    res.status(200).json({
+        ok: true,
+        service: 'aviarios-backend',
+        timestamp: new Date().toISOString(),
+    });
+});
 
 // Middleware global de manutenção — bloqueia requisições de não-admins quando em manutenção
 app.use(maintenanceMiddleware);
@@ -64,4 +73,13 @@ import { errorMiddleware } from './middlewares/error.js';
 app.use(errorMiddleware);
 
 const PORT = env.PORT;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+
+async function startServer() {
+    await ensureDefaultAdmin();
+    app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+}
+
+startServer().catch((error) => {
+    console.error('Erro ao iniciar o servidor:', error);
+    process.exit(1);
+});

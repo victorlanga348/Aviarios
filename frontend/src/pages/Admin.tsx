@@ -3,18 +3,47 @@ import { isAxiosError } from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
-import { Shield, ShieldAlert, ShieldCheck, Users, AlertTriangle, X, Clock, Square, Save, Trash2, ArrowRightLeft } from 'lucide-react';
+import {
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Users,
+  AlertTriangle,
+  X,
+  Clock,
+  Square,
+  Save,
+  Trash2,
+  ArrowRightLeft,
+  CalendarClock,
+  CheckCircle2,
+  ClipboardList,
+  Eye,
+  Filter,
+  PlayCircle,
+  Search,
+  Wrench,
+  XCircle,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { fastTransition, feedbackVariants, modalVariants, motionTransition, overlayVariants } from '../lib/animations';
 
 interface MaintenanceConfig {
   isActive: boolean;
+  status: MaintenanceStatus;
+  type: string;
+  clientName: string;
+  equipment: string;
+  description: string;
   estimatedTime: string;
   scheduledStart: string | null;
   durationHours: number | null;
   leadTimeHours: number | null;
 }
+
+type MaintenanceStatus = 'PENDENTE' | 'AGENDADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA';
+type MaintenanceFilter = 'TODAS' | MaintenanceStatus;
 
 interface AdminStats {
   totalSalesValue: number;
@@ -56,6 +85,11 @@ export function Admin() {
   // Maintenance Settings
   const [mConfig, setMConfig] = useState<MaintenanceConfig>({
     isActive: false,
+    status: 'PENDENTE',
+    type: 'Sistema',
+    clientName: '',
+    equipment: '',
+    description: '',
     estimatedTime: '',
     scheduledStart: null,
     durationHours: null,
@@ -63,6 +97,9 @@ export function Admin() {
   });
   const [isScheduled, setIsScheduled] = useState(false);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
+  const [maintenanceFilter, setMaintenanceFilter] = useState<MaintenanceFilter>('TODAS');
+  const [maintenanceSearch, setMaintenanceSearch] = useState('');
+  const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceConfig | null>(null);
 
   const fetchMaintenanceConfig = useCallback(async () => {
     try {
@@ -71,6 +108,11 @@ export function Admin() {
         const m = response.data.maintenance;
         setMConfig({
           isActive: m.isActive || false,
+          status: m.status || (m.isActive ? 'EM_ANDAMENTO' : m.scheduledStart ? 'AGENDADA' : 'PENDENTE'),
+          type: m.type || 'Sistema',
+          clientName: m.clientName || '',
+          equipment: m.equipment || '',
+          description: m.description || '',
           estimatedTime: m.estimatedTime || '',
           scheduledStart: m.scheduledStart ? new Date(m.scheduledStart).toISOString().slice(0, 16) : null,
           durationHours: m.durationHours || null,
@@ -94,6 +136,11 @@ export function Admin() {
     try {
       const payload = {
         isActive: mConfig.isActive,
+        status: mConfig.isActive ? 'EM_ANDAMENTO' : isScheduled ? 'AGENDADA' : mConfig.status,
+        type: mConfig.type,
+        clientName: mConfig.clientName,
+        equipment: mConfig.equipment,
+        description: mConfig.description,
         estimatedTime: mConfig.estimatedTime,
         scheduledStart: isScheduled ? mConfig.scheduledStart : null,
         durationHours: isScheduled ? mConfig.durationHours : null,
@@ -102,7 +149,6 @@ export function Admin() {
 
       await api.post('/maintenance', payload);
       toast.success('Configurações de manutenção salvas!');
-      setIsScheduled(false); // fecha o painel de agendamento após salvar
       fetchMaintenanceConfig();
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, 'Erro ao salvar configurações.'));
@@ -116,6 +162,11 @@ export function Admin() {
     try {
       await api.post('/maintenance', {
         isActive: false,
+        status: 'CANCELADA',
+        type: mConfig.type,
+        clientName: mConfig.clientName,
+        equipment: mConfig.equipment,
+        description: mConfig.description,
         estimatedTime: '',
         scheduledStart: null,
         durationHours: null,
@@ -125,6 +176,45 @@ export function Admin() {
       fetchMaintenanceConfig();
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, 'Erro ao parar manutenção.'));
+    } finally {
+      setLoadingMaintenance(false);
+    }
+  };
+
+  const handleMaintenanceStatusChange = async (status: MaintenanceStatus) => {
+    if (status === 'AGENDADA' && !mConfig.scheduledStart) {
+      toast.error('Defina a data de início antes de marcar como agendada.');
+      return;
+    }
+
+    setLoadingMaintenance(true);
+    try {
+      const nextIsScheduled = status === 'AGENDADA';
+      await api.post('/maintenance', {
+        isActive: status === 'EM_ANDAMENTO',
+        status,
+        type: mConfig.type,
+        clientName: mConfig.clientName,
+        equipment: mConfig.equipment,
+        description: mConfig.description,
+        estimatedTime: mConfig.estimatedTime,
+        scheduledStart: nextIsScheduled ? mConfig.scheduledStart : null,
+        durationHours: nextIsScheduled ? mConfig.durationHours : null,
+        leadTimeHours: nextIsScheduled ? mConfig.leadTimeHours : null,
+      });
+      toast.success('Status da manutenção atualizado.');
+      setMConfig(prev => ({
+        ...prev,
+        status,
+        isActive: status === 'EM_ANDAMENTO',
+        scheduledStart: nextIsScheduled ? prev.scheduledStart : null,
+        durationHours: nextIsScheduled ? prev.durationHours : null,
+        leadTimeHours: nextIsScheduled ? prev.leadTimeHours : null,
+      }));
+      setIsScheduled(nextIsScheduled);
+      fetchMaintenanceConfig();
+    } catch (error: unknown) {
+      toast.error(getApiErrorMessage(error, 'Erro ao atualizar status da manutenção.'));
     } finally {
       setLoadingMaintenance(false);
     }
@@ -230,6 +320,95 @@ export function Admin() {
     }).format(value);
   };
 
+  const formatDateTime = (value: string | null) => {
+    if (!value) return 'Sem data definida';
+    return new Intl.DateTimeFormat('pt-MZ', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  };
+
+  const getEffectiveMaintenanceStatus = (maintenance: MaintenanceConfig): MaintenanceStatus => {
+    if (maintenance.isActive) return 'EM_ANDAMENTO';
+    if (maintenance.status === 'CANCELADA' || maintenance.status === 'CONCLUIDA') return maintenance.status;
+    if (!maintenance.scheduledStart) return maintenance.status || 'PENDENTE';
+
+    const start = new Date(maintenance.scheduledStart);
+    const now = new Date();
+    if (start > now) return 'AGENDADA';
+
+    if (maintenance.durationHours) {
+      const end = new Date(start.getTime() + maintenance.durationHours * 60 * 60 * 1000);
+      return now <= end ? 'EM_ANDAMENTO' : 'CONCLUIDA';
+    }
+
+    return 'EM_ANDAMENTO';
+  };
+
+  const statusConfig: Record<MaintenanceStatus, {
+    label: string;
+    className: string;
+    icon: typeof Clock;
+  }> = {
+    PENDENTE: {
+      label: 'Pendente',
+      className: 'bg-slate-500/15 text-slate-500 border-slate-500/25',
+      icon: ClipboardList,
+    },
+    AGENDADA: {
+      label: 'Agendada',
+      className: 'bg-blue-500/15 text-blue-500 border-blue-500/25',
+      icon: CalendarClock,
+    },
+    EM_ANDAMENTO: {
+      label: 'Em andamento',
+      className: 'bg-amber-500/15 text-amber-500 border-amber-500/25',
+      icon: PlayCircle,
+    },
+    CONCLUIDA: {
+      label: 'Concluída',
+      className: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/25',
+      icon: CheckCircle2,
+    },
+    CANCELADA: {
+      label: 'Cancelada',
+      className: 'bg-red-500/15 text-red-500 border-red-500/25',
+      icon: XCircle,
+    },
+  };
+
+  const maintenanceItems = [mConfig].map(item => ({
+    ...item,
+    status: getEffectiveMaintenanceStatus(item),
+  }));
+
+  const filteredMaintenanceItems = maintenanceItems.filter(item => {
+    const query = maintenanceSearch.trim().toLowerCase();
+    const matchesStatus = maintenanceFilter === 'TODAS' || item.status === maintenanceFilter;
+    const searchable = [
+      item.clientName,
+      item.equipment,
+      item.description,
+      item.type,
+      item.estimatedTime,
+      item.scheduledStart ? formatDateTime(item.scheduledStart) : '',
+      statusConfig[item.status].label,
+    ].join(' ').toLowerCase();
+
+    return matchesStatus && (!query || searchable.includes(query));
+  });
+
+  const nextMaintenance = maintenanceItems
+    .filter(item => item.scheduledStart && new Date(item.scheduledStart) > new Date() && item.status !== 'CANCELADA')
+    .sort((a, b) => new Date(a.scheduledStart!).getTime() - new Date(b.scheduledStart!).getTime())[0];
+
+  const maintenanceSummary = {
+    total: maintenanceItems.length,
+    pending: maintenanceItems.filter(item => item.status === 'PENDENTE' || item.status === 'AGENDADA').length,
+    active: maintenanceItems.filter(item => item.status === 'EM_ANDAMENTO').length,
+    done: maintenanceItems.filter(item => item.status === 'CONCLUIDA').length,
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -279,9 +458,348 @@ export function Admin() {
         </div>
       </div>
 
+      <section className="bg-card border border-border rounded-3xl p-5 sm:p-6 shadow-sm space-y-5 min-w-0 overflow-hidden">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
+              <Wrench className="text-amber-500" size={20} />
+              Controle de Manutenção
+            </h3>
+            <p className="text-sm text-muted mt-1">Gerencie a manutenção global exibida para usuários e administradores.</p>
+          </div>
+          <span className={`w-fit border text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider ${statusConfig[getEffectiveMaintenanceStatus(mConfig)].className}`}>
+            {statusConfig[getEffectiveMaintenanceStatus(mConfig)].label}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { label: 'Total', value: maintenanceSummary.total, icon: ClipboardList, tone: 'text-primary bg-primary/15' },
+            { label: 'Pendentes', value: maintenanceSummary.pending, icon: CalendarClock, tone: 'text-blue-500 bg-blue-500/15' },
+            { label: 'Em andamento', value: maintenanceSummary.active, icon: PlayCircle, tone: 'text-amber-500 bg-amber-500/15' },
+            { label: 'Concluídas', value: maintenanceSummary.done, icon: CheckCircle2, tone: 'text-emerald-500 bg-emerald-500/15' },
+          ].map(metric => (
+            <div key={metric.label} className="rounded-2xl border border-border bg-secondary/25 p-3 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold text-muted uppercase">{metric.label}</span>
+                <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${metric.tone}`}>
+                  <metric.icon size={16} />
+                </div>
+              </div>
+              <p className="text-2xl font-black mt-2">{metric.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {nextMaintenance && (
+          <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center shrink-0">
+                <CalendarClock size={18} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-black text-blue-500 uppercase">Próxima manutenção</p>
+                <p className="font-bold text-foreground truncate">{nextMaintenance.type || 'Sistema'} · {formatDateTime(nextMaintenance.scheduledStart)}</p>
+                <p className="text-xs text-muted truncate">{nextMaintenance.equipment || 'Equipamento geral'} · {nextMaintenance.clientName || 'Todos os clientes'}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedMaintenance(nextMaintenance)}
+              className="px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 font-bold text-xs flex items-center justify-center gap-2"
+            >
+              <Eye size={14} />
+              Ver detalhes
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={handleSaveMaintenance} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tipo</label>
+              <input
+                type="text"
+                placeholder="Sistema, elétrica, rede..."
+                value={mConfig.type}
+                onChange={(e) => setMConfig(prev => ({ ...prev, type: e.target.value }))}
+                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Cliente</label>
+              <input
+                type="text"
+                placeholder="Todos os clientes"
+                value={mConfig.clientName}
+                onChange={(e) => setMConfig(prev => ({ ...prev, clientName: e.target.value }))}
+                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Equipamento</label>
+              <input
+                type="text"
+                placeholder="Servidor, base de dados..."
+                value={mConfig.equipment}
+                onChange={(e) => setMConfig(prev => ({ ...prev, equipment: e.target.value }))}
+                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Descrição</label>
+              <textarea
+                rows={3}
+                placeholder="Resumo curto do trabalho de manutenção"
+                value={mConfig.description}
+                onChange={(e) => setMConfig(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium resize-none"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="p-3 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between min-w-0 gap-3">
+                <div>
+                  <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isActiveV2">Manutenção imediata</label>
+                  <span className="text-xs text-muted block">Bloqueia usuários comuns agora</span>
+                </div>
+                <input
+                  type="checkbox"
+                  id="isActiveV2"
+                  checked={mConfig.isActive}
+                  onChange={(e) => setMConfig(prev => ({ ...prev, isActive: e.target.checked, status: e.target.checked ? 'EM_ANDAMENTO' : prev.status }))}
+                  className="w-5 h-5 accent-primary rounded cursor-pointer"
+                />
+              </div>
+
+              <div className="p-3 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between min-w-0 gap-3">
+                <div>
+                  <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isScheduledV2">Agendar manutenção futura</label>
+                  <span className="text-xs text-muted block">Cria aviso discreto na interface</span>
+                </div>
+                <input
+                  type="checkbox"
+                  id="isScheduledV2"
+                  checked={isScheduled}
+                  onChange={(e) => {
+                    setIsScheduled(e.target.checked);
+                    setMConfig(prev => ({ ...prev, status: e.target.checked ? 'AGENDADA' : prev.status }));
+                  }}
+                  className="w-5 h-5 accent-primary rounded cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="space-y-2 min-w-0">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Início</label>
+              <div className="date-input-shell bg-secondary border border-border rounded-2xl focus-within:border-primary/50 transition-colors">
+                <input
+                  type="datetime-local"
+                  value={mConfig.scheduledStart || ''}
+                  onChange={(e) => setMConfig(prev => ({ ...prev, scheduledStart: e.target.value }))}
+                  required={isScheduled}
+                  className="h-11 px-3 outline-none text-foreground text-xs font-medium"
+                />
+              </div>
+            </div>
+            <div className="space-y-2 min-w-0">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Duração</label>
+              <input
+                type="number"
+                step="0.5"
+                min="0.5"
+                placeholder="Horas"
+                value={mConfig.durationHours || ''}
+                onChange={(e) => setMConfig(prev => ({ ...prev, durationHours: e.target.value ? Number(e.target.value) : null }))}
+                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+              />
+            </div>
+            <div className="space-y-2 min-w-0">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Aviso prévio</label>
+              <input
+                type="number"
+                min="1"
+                placeholder="Horas antes"
+                value={mConfig.leadTimeHours || ''}
+                onChange={(e) => setMConfig(prev => ({ ...prev, leadTimeHours: e.target.value ? Number(e.target.value) : null }))}
+                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+              />
+            </div>
+            <div className="space-y-2 min-w-0">
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tempo estimado</label>
+              <div className="relative">
+                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={16} />
+                <input
+                  type="text"
+                  placeholder="Ex: 2 horas"
+                  value={mConfig.estimatedTime}
+                  onChange={(e) => setMConfig(prev => ({ ...prev, estimatedTime: e.target.value }))}
+                  className="w-full bg-secondary border border-border p-3 pl-11 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-3 pt-4 border-t border-border/50">
+            <div className="grid grid-cols-2 sm:flex gap-2">
+              {(['PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceStatus[]).map(status => {
+                const StatusIcon = statusConfig[status].icon;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    disabled={loadingMaintenance || (status === 'AGENDADA' && !mConfig.scheduledStart)}
+                    onClick={() => handleMaintenanceStatusChange(status)}
+                    className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 ${statusConfig[status].className}`}
+                  >
+                    <StatusIcon size={14} />
+                    {statusConfig[status].label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 lg:ml-auto">
+              {(mConfig.isActive || mConfig.scheduledStart) && (
+                <button type="button" onClick={handleImmediateStop} disabled={loadingMaintenance} className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50">
+                  <Square size={16} />
+                  Cancelar
+                </button>
+              )}
+              <button type="submit" disabled={loadingMaintenance} className="px-4 py-3 bg-primary hover:bg-emerald-500 text-black rounded-xl font-black flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-50">
+                <Save size={16} />
+                {loadingMaintenance ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div className="pt-5 border-t border-border/50 space-y-3">
+          <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={16} />
+              <input
+                type="search"
+                placeholder="Buscar por cliente, data, equipamento ou descrição"
+                value={maintenanceSearch}
+                onChange={(e) => setMaintenanceSearch(e.target.value)}
+                className="w-full bg-secondary border border-border p-3 pl-11 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
+              />
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {(['TODAS', 'PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceFilter[]).map(filter => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setMaintenanceFilter(filter)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold border whitespace-nowrap flex items-center gap-1.5 ${maintenanceFilter === filter ? 'bg-primary text-black border-primary' : 'bg-secondary/50 border-border text-muted hover:text-foreground'}`}
+                >
+                  <Filter size={13} />
+                  {filter === 'TODAS' ? 'Todas' : statusConfig[filter].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[860px]">
+              <thead>
+                <tr className="bg-secondary/50 text-muted text-xs font-black uppercase">
+                  <th className="p-3 rounded-l-xl">Manutenção</th>
+                  <th className="p-3">Cliente</th>
+                  <th className="p-3">Data</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Atualizar</th>
+                  <th className="p-3 text-right rounded-r-xl">Detalhes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredMaintenanceItems.map(item => {
+                  const StatusIcon = statusConfig[item.status].icon;
+                  return (
+                    <tr key={`${item.type}-${item.scheduledStart || item.status}`} className="hover:bg-secondary/20">
+                      <td className="p-3">
+                        <p className="font-bold text-sm">{item.type || 'Sistema'}</p>
+                        <p className="text-xs text-muted">{item.equipment || 'Equipamento geral'}</p>
+                      </td>
+                      <td className="p-3 text-sm text-muted">{item.clientName || 'Todos os clientes'}</td>
+                      <td className="p-3 text-sm">{formatDateTime(item.scheduledStart)}</td>
+                      <td className="p-3">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs font-bold ${statusConfig[item.status].className}`}>
+                          <StatusIcon size={13} />
+                          {statusConfig[item.status].label}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <select value={item.status} disabled={loadingMaintenance} onChange={(e) => handleMaintenanceStatusChange(e.target.value as MaintenanceStatus)} className="bg-secondary border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-primary/50">
+                          {(['PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceStatus[]).map(status => (
+                            <option key={status} value={status}>{statusConfig[status].label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="p-3 text-right">
+                        <button type="button" onClick={() => setSelectedMaintenance(item)} className="px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-xs font-bold inline-flex items-center gap-2">
+                          <Eye size={14} />
+                          Abrir
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 lg:hidden">
+            {filteredMaintenanceItems.map(item => {
+              const StatusIcon = statusConfig[item.status].icon;
+              return (
+                <div key={`${item.type}-${item.scheduledStart || item.status}`} className="rounded-2xl border border-border bg-secondary/20 p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-bold text-foreground truncate">{item.type || 'Sistema'}</p>
+                      <p className="text-xs text-muted truncate">{item.equipment || 'Equipamento geral'}</p>
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-bold ${statusConfig[item.status].className}`}>
+                      <StatusIcon size={12} />
+                      {statusConfig[item.status].label}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="text-muted font-bold uppercase">Cliente</p>
+                      <p className="font-medium">{item.clientName || 'Todos'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted font-bold uppercase">Data</p>
+                      <p className="font-medium">{formatDateTime(item.scheduledStart)}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <select value={item.status} disabled={loadingMaintenance} onChange={(e) => handleMaintenanceStatusChange(e.target.value as MaintenanceStatus)} className="flex-1 bg-secondary border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none">
+                      {(['PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceStatus[]).map(status => (
+                        <option key={status} value={status}>{statusConfig[status].label}</option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={() => setSelectedMaintenance(item)} className="px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-xs font-bold flex items-center gap-2">
+                      <Eye size={14} />
+                      Detalhes
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* Maintenance Config Card */}
-      <div className="bg-card border border-border rounded-3xl p-5 sm:p-6 shadow-sm space-y-6 min-w-0 overflow-hidden">
+      <div className="hidden">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
             <AlertTriangle className="text-amber-500" size={20} />
@@ -595,6 +1113,98 @@ export function Admin() {
 
       {/* CUSTOM CONFIRMATION MODAL */}
       <AnimatePresence>
+        {selectedMaintenance && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              variants={overlayVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={fastTransition}
+              onClick={() => setSelectedMaintenance(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            <motion.div
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={motionTransition}
+              className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-y-auto overflow-x-hidden"
+            >
+              <div className="flex justify-between items-start gap-4 mb-6">
+                <div>
+                  <p className="text-xs font-black text-amber-500 uppercase tracking-wider">Detalhes da manutenção</p>
+                  <h3 className="text-xl font-black text-foreground mt-1">{selectedMaintenance.type || 'Sistema'}</h3>
+                </div>
+                <button
+                  onClick={() => setSelectedMaintenance(null)}
+                  className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
+                  <p className="text-xs font-black text-muted uppercase">Status</p>
+                  <p className="font-bold mt-1">{statusConfig[getEffectiveMaintenanceStatus(selectedMaintenance)].label}</p>
+                </div>
+                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
+                  <p className="text-xs font-black text-muted uppercase">Data/Hora</p>
+                  <p className="font-bold mt-1">{formatDateTime(selectedMaintenance.scheduledStart)}</p>
+                </div>
+                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
+                  <p className="text-xs font-black text-muted uppercase">Cliente</p>
+                  <p className="font-bold mt-1">{selectedMaintenance.clientName || 'Todos os clientes'}</p>
+                </div>
+                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
+                  <p className="text-xs font-black text-muted uppercase">Equipamento</p>
+                  <p className="font-bold mt-1">{selectedMaintenance.equipment || 'Equipamento geral'}</p>
+                </div>
+                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
+                  <p className="text-xs font-black text-muted uppercase">Duração</p>
+                  <p className="font-bold mt-1">{selectedMaintenance.durationHours ? `${selectedMaintenance.durationHours} horas` : 'Indefinida'}</p>
+                </div>
+                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
+                  <p className="text-xs font-black text-muted uppercase">Aviso prévio</p>
+                  <p className="font-bold mt-1">{selectedMaintenance.leadTimeHours ? `${selectedMaintenance.leadTimeHours} horas antes` : 'Não configurado'}</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-secondary/40 border border-border p-3 mt-3">
+                <p className="text-xs font-black text-muted uppercase">Descrição</p>
+                <p className="text-sm text-foreground mt-1 leading-relaxed">
+                  {selectedMaintenance.description || 'Sem descrição informada.'}
+                </p>
+              </div>
+
+              <div className="mt-5 flex flex-col sm:flex-row gap-3">
+                <select
+                  value={getEffectiveMaintenanceStatus(selectedMaintenance)}
+                  disabled={loadingMaintenance}
+                  onChange={(e) => {
+                    handleMaintenanceStatusChange(e.target.value as MaintenanceStatus);
+                    setSelectedMaintenance(null);
+                  }}
+                  className="flex-1 bg-secondary border border-border rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-primary/50"
+                >
+                  {(['PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceStatus[]).map(status => (
+                    <option key={status} value={status}>{statusConfig[status].label}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => setSelectedMaintenance(null)}
+                  className="px-4 py-3 bg-primary rounded-xl font-black text-black shadow-lg shadow-primary/20"
+                >
+                  Fechar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {roleModal?.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div

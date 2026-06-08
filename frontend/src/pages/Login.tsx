@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getApiErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { LogIn, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
@@ -24,8 +25,7 @@ export function Login() {
       toast.success('Bem-vindo!');
       navigate('/');
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string; error?: string } } };
-      setError(axiosError.response?.data?.message || axiosError.response?.data?.error || 'Erro ao entrar. Verifique suas credenciais.');
+      setError(getApiErrorMessage(err, 'Erro ao entrar. Verifique suas credenciais.'));
     } finally {
       setIsLoading(false);
     }

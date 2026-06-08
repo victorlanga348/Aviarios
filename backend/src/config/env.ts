@@ -27,5 +27,5 @@ export const env = {
     DATABASE_URL: process.env.DATABASE_URL!,
     JWT_SECRET: process.env.JWT_SECRET!,
     PORT: parsePort(process.env.PORT),
-    CORS_ORIGINS: parseCorsOrigins(process.env.CORS_ORIGIN),
+    CORS_ORIGINS: parseCorsOrigins(process.env.CORS_ORIGINS || process.env.CORS_ORIGIN),
 };

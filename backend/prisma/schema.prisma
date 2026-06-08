@@ -159,6 +159,14 @@ enum ScheduledStatus {
   CANCELLED
 }
 
+enum MaintenanceStatus {
+  PENDENTE
+  AGENDADA
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
 // 8. Despesas Fixas (A Gaveta da Casa - Luz, Água)
 model FixedExpense {
   id          String   @id @default(uuid())
@@ -182,7 +190,12 @@ model Configuration {
 
 // 11. Controle de Manutenção
 model Maintenance {
-  id             String    @id @default("global")
+  id             String            @id @default("global")
+  status         MaintenanceStatus @default(PENDENTE)
+  type           String            @default("Sistema")
+  clientName     String?
+  equipment      String?
+  description    String?
   isActive       Boolean   @default(false)    // Se a manutenção está ativa AGORA
   estimatedTime  String?                      // Tempo estimado (Ex: "2 horas")
   scheduledStart DateTime?                    // Data/Hora agendada para começar

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../lib/api';
+import { api, getApiErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { UserPlus, Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
@@ -25,8 +25,7 @@ export function Register() {
       toast.success('Conta criada com sucesso! Faça login.');
       navigate('/login');
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string; error?: string } } };
-      setError(axiosError.response?.data?.message || axiosError.response?.data?.error || 'Erro ao criar conta. Tente outro email.');
+      setError(getApiErrorMessage(err, 'Erro ao criar conta. Tente outro email.'));
     } finally {
       setIsLoading(false);
     }

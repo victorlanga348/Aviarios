@@ -1,23 +1,96 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Wrench, Clock, XCircle } from 'lucide-react';
+import { CalendarClock, Clock, Info, Wrench, X, XCircle } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { fastTransition, feedbackVariants, modalVariants, motionTransition } from '../../lib/animations';
+import { modalVariants, motionTransition } from '../../lib/animations';
+
+interface MaintenanceRecord {
+  id: string;
+  isActive: boolean;
+  status?: string;
+  type?: string | null;
+  clientName?: string | null;
+  equipment?: string | null;
+  description?: string | null;
+  scheduledStart?: string | null;
+  estimatedTime?: string | null;
+  durationHours?: number | null;
+  leadTimeHours?: number | null;
+}
 
 interface MaintenanceStatus {
   inMaintenance: boolean;
-  isAlertActive?: boolean;
+  showAlert?: boolean;
+  timeLeftText?: string;
   estimatedTime?: string;
   scheduledStart?: string;
-  durationHours?: number;
-  leadTimeHours?: number;
+  durationHours?: number | null;
+  leadTimeHours?: number | null;
+  maintenance?: MaintenanceRecord | null;
+}
+
+const TOP_BAR_HEIGHT = 36;
+const DETAILS_PANEL_HEIGHT = 212;
+
+function formatDateParts(value: string) {
+  const date = new Date(value);
+  const dateLabel = new Intl.DateTimeFormat('pt-MZ', {
+    day: '2-digit',
+    month: '2-digit',
+  }).format(date);
+  const timeLabel = new Intl.DateTimeFormat('pt-MZ', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+
+  return { dateLabel, timeLabel };
+}
+
+function getStatusLabel(value?: string) {
+  const labels: Record<string, string> = {
+    PENDENTE: 'Pendente',
+    AGENDADA: 'Agendada',
+    EM_ANDAMENTO: 'Em andamento',
+    CONCLUIDA: 'Concluída',
+    CANCELADA: 'Cancelada',
+  };
+
+  return value ? labels[value] || value : 'Agendada';
+}
+
+function DetailRow({ label, value }: { label: string; value?: string | number | null }) {
+  if (value === undefined || value === null || value === '') return null;
+
+  return (
+    <div className="min-w-0">
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-amber-950/60">{label}</dt>
+      <dd className="truncate text-sm font-semibold text-amber-950">{value}</dd>
+    </div>
+  );
+}
+
+function shouldDisplayBanner(
+  status: MaintenanceStatus | null,
+  scheduledStart: string | undefined,
+  isAdmin: boolean,
+  nowMs: number,
+) {
+  if (!status) return false;
+  if (status.inMaintenance && isAdmin) return true;
+  if (status.showAlert && scheduledStart) return true;
+  if (!scheduledStart) return false;
+  return new Date(scheduledStart).getTime() > nowMs;
 }
 
 export function MaintenanceBanner() {
   const [status, setStatus] = useState<MaintenanceStatus | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [nowMs, setNowMs] = useState(0);
   const prevInMaintenanceRef = useRef(false);
+  const detailsButtonRef = useRef<HTMLButtonElement | null>(null);
+  const detailsPanelId = useId();
   const { user, signOut } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -25,17 +98,27 @@ export function MaintenanceBanner() {
     const fetchStatus = async () => {
       try {
         const response = await api.get('/maintenance');
-        setStatus(response.data);
+        const nextStatus = response.data as MaintenanceStatus;
+        const nextNowMs = Date.now();
+        const nextScheduledStart = nextStatus.scheduledStart || nextStatus.maintenance?.scheduledStart || undefined;
+
+        setNowMs(nextNowMs);
+        setStatus(nextStatus);
+
+        if (!shouldDisplayBanner(nextStatus, nextScheduledStart, isAdmin, nextNowMs)) {
+          setIsDetailsOpen(false);
+        }
       } catch {
-        // ignore errors
+        // The global API interceptor already shows a friendly network message.
       }
     };
 
     fetchStatus();
-    const interval = setInterval(fetchStatus, 60000); // every minute
+    const interval = setInterval(fetchStatus, 60000);
 
     const handleMaintenanceEvent = (e: Event) => {
       const customEvent = e as CustomEvent;
+      setNowMs(Date.now());
       setStatus(prev => ({
         ...prev,
         inMaintenance: true,
@@ -48,7 +131,7 @@ export function MaintenanceBanner() {
       clearInterval(interval);
       window.removeEventListener('maintenance_event', handleMaintenanceEvent);
     };
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!status) return;
@@ -62,9 +145,45 @@ export function MaintenanceBanner() {
     prevInMaintenanceRef.current = status.inMaintenance;
   }, [isAdmin, status]);
 
+  const scheduledStart = status?.scheduledStart || status?.maintenance?.scheduledStart || undefined;
+  const shouldShowTopBar = useMemo(
+    () => shouldDisplayBanner(status, scheduledStart, isAdmin, nowMs),
+    [isAdmin, nowMs, scheduledStart, status],
+  );
+  const visibleDetailsOpen = shouldShowTopBar && isDetailsOpen;
+
+  useEffect(() => {
+    const activeHeight = shouldShowTopBar
+      ? TOP_BAR_HEIGHT + (visibleDetailsOpen ? DETAILS_PANEL_HEIGHT : 0)
+      : 0;
+
+    document.body.classList.toggle('maintenance-topbar-active', shouldShowTopBar);
+    document.body.style.setProperty('--maintenance-topbar-height', `${TOP_BAR_HEIGHT}px`);
+    document.body.style.setProperty('--maintenance-offset-height', `${activeHeight}px`);
+
+    return () => {
+      document.body.classList.remove('maintenance-topbar-active');
+      document.body.style.removeProperty('--maintenance-topbar-height');
+      document.body.style.removeProperty('--maintenance-offset-height');
+    };
+  }, [shouldShowTopBar, visibleDetailsOpen]);
+
+  useEffect(() => {
+    if (!isDetailsOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDetailsOpen(false);
+        detailsButtonRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDetailsOpen]);
+
   if (!status) return null;
 
-  // ─── Full-screen block for normal users when maintenance is active ───
   if (status.inMaintenance && !isAdmin) {
     return (
       <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center p-6 text-center">
@@ -107,74 +226,100 @@ export function MaintenanceBanner() {
     );
   }
 
-  // ─── Admin: small fixed bar when system IS in maintenance ───
-  if (status.inMaintenance && isAdmin) {
-    return (
-      <motion.div 
-        variants={feedbackVariants}
-        initial="initial"
-        animate="animate"
-        transition={fastTransition}
-        className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
+  if (!shouldShowTopBar) return null;
+
+  const { dateLabel, timeLabel } = scheduledStart
+    ? formatDateParts(scheduledStart)
+    : { dateLabel: 'hoje', timeLabel: 'agora' };
+  const shortMessage = `Manut. ${dateLabel} ${timeLabel}`;
+  const fullMessage = `Manutenção agendada para ${dateLabel} às ${timeLabel}`;
+  const maintenance = status.maintenance;
+  const duration = maintenance?.durationHours ?? status.durationHours;
+  const leadTime = maintenance?.leadTimeHours ?? status.leadTimeHours;
+  const estimatedTime = maintenance?.estimatedTime || status.estimatedTime;
+
+  return (
+    <div className="fixed left-0 right-0 top-0 z-[70] text-amber-950">
+      <div
+        className="h-9 border-b border-amber-300 bg-amber-200 shadow-sm"
+        role="status"
+        aria-live="polite"
       >
-        <div className="bg-amber-500 text-black text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
-          <Wrench size={14} className="animate-spin" style={{ animationDuration: '3s' }} />
-          <span>
-            SISTEMA EM MANUTENÇÃO
-            {status.estimatedTime && status.estimatedTime !== 'Tempo indeterminado' && (
-              <> — Tempo estimado: {status.estimatedTime}</>
-            )}
-          </span>
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-center gap-2 px-3 text-xs font-bold sm:text-sm">
+          <CalendarClock size={15} className="shrink-0 text-amber-800" aria-hidden="true" />
+          <p className="min-w-0 flex-1 truncate text-center sm:flex-none">
+            <span className="sm:hidden">{shortMessage}</span>
+            <span className="hidden sm:inline">{fullMessage}</span>
+          </p>
+          <button
+            ref={detailsButtonRef}
+            type="button"
+            onClick={() => setIsDetailsOpen(prev => !prev)}
+            aria-expanded={visibleDetailsOpen}
+            aria-controls={detailsPanelId}
+            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-md border border-amber-500/50 bg-amber-100 px-2 text-xs font-black text-amber-950 hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-700/40"
+          >
+            <Info size={14} aria-hidden="true" />
+            <span>Detalhes</span>
+          </button>
         </div>
-      </motion.div>
-    );
-  }
+      </div>
 
-  // ─── Admin: small fixed bar when maintenance is scheduled (not yet active) ───
-  if (status.scheduledStart && !status.inMaintenance && isAdmin) {
-    const start = new Date(status.scheduledStart);
-    const now = new Date();
-    if (start.getTime() > now.getTime()) {
-      return (
-        <motion.div 
-          variants={feedbackVariants}
-          initial="initial"
-          animate="animate"
-          transition={fastTransition}
-          className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
+      {visibleDetailsOpen && (
+        <motion.section
+          id={detailsPanelId}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={`${detailsPanelId}-title`}
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={motionTransition}
+          className="border-b border-amber-300 bg-amber-100 shadow-sm"
         >
-          <div className="bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
-            <Clock size={14} />
-            <span>Manutenção agendada para {start.toLocaleString('pt-MZ')}</span>
-          </div>
-        </motion.div>
-      );
-    }
-  }
+          <div className="mx-auto flex max-h-[212px] max-w-7xl flex-col gap-3 overflow-y-auto px-4 py-3 sm:px-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h2 id={`${detailsPanelId}-title`} className="truncate text-sm font-black text-amber-950">
+                  Detalhes da manutenção agendada
+                </h2>
+                {status.timeLeftText && (
+                  <p className="mt-1 truncate text-xs font-semibold text-amber-900/80">
+                    {status.timeLeftText}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDetailsOpen(false);
+                  detailsButtonRef.current?.focus();
+                }}
+                aria-label="Fechar detalhes da manutenção"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-amber-900 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-700/40"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
 
-  // ─── Regular users: small fixed bar when maintenance is upcoming (within lead time) ───
-  if (status.scheduledStart && !status.inMaintenance && !isAdmin) {
-    const start = new Date(status.scheduledStart);
-    const now = new Date();
-    const leadMs = (status.leadTimeHours ?? 1) * 60 * 60 * 1000;
-    const diff = start.getTime() - now.getTime();
-    if (diff > 0 && diff <= leadMs) {
-      return (
-        <motion.div 
-          variants={feedbackVariants}
-          initial="initial"
-          animate="animate"
-          transition={fastTransition}
-          className="fixed top-[57px] md:top-0 left-0 md:left-72 right-0 z-40 shadow-lg"
-        >
-          <div className="bg-amber-500 text-black text-xs font-bold flex items-center justify-center gap-2 py-1.5 px-4">
-            <AlertTriangle size={14} />
-            <span>AVISO: Manutenção programada para {start.toLocaleString('pt-MZ')}</span>
-          </div>
-        </motion.div>
-      );
-    }
-  }
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <DetailRow label="Início" value={`${dateLabel} às ${timeLabel}`} />
+              <DetailRow label="Estado" value={getStatusLabel(maintenance?.status)} />
+              <DetailRow label="Tempo estimado" value={estimatedTime || 'Tempo indeterminado'} />
+              <DetailRow label="Duração" value={duration ? `${duration} hora(s)` : null} />
+              <DetailRow label="Aviso prévio" value={leadTime ? `${leadTime} hora(s)` : null} />
+              <DetailRow label="Tipo" value={maintenance?.type} />
+              <DetailRow label="Cliente" value={maintenance?.clientName} />
+              <DetailRow label="Equipamento" value={maintenance?.equipment} />
+            </dl>
 
-  return null;
+            {maintenance?.description && (
+              <p className="line-clamp-2 text-sm font-medium leading-relaxed text-amber-950/85">
+                {maintenance.description}
+              </p>
+            )}
+          </div>
+        </motion.section>
+      )}
+    </div>
+  );
 }

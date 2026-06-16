@@ -40,19 +40,6 @@ body {
   overflow-x: hidden;
 }
 
-body.maintenance-topbar-active {
-  padding-top: var(--maintenance-offset-height, var(--maintenance-topbar-height, 36px));
-}
-
-body.maintenance-topbar-active header.fixed.top-0,
-body.maintenance-topbar-active aside.fixed.top-0 {
-  top: var(--maintenance-offset-height, var(--maintenance-topbar-height, 36px));
-}
-
-body.maintenance-topbar-active .fixed.inset-0 {
-  top: var(--maintenance-offset-height, var(--maintenance-topbar-height, 36px));
-}
-
 html {
   overflow-x: hidden;
 }

@@ -17,17 +17,13 @@ import {
   ArrowRightLeft,
   CalendarClock,
   CheckCircle2,
-  ClipboardList,
-  Eye,
-  Filter,
   PlayCircle,
-  Search,
   Wrench,
   XCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { fastTransition, feedbackVariants, modalVariants, motionTransition, overlayVariants } from '../lib/animations';
+import { fastTransition, modalVariants, motionTransition, overlayVariants } from '../lib/animations';
 
 interface MaintenanceConfig {
   isActive: boolean;
@@ -43,7 +39,6 @@ interface MaintenanceConfig {
 }
 
 type MaintenanceStatus = 'PENDENTE' | 'AGENDADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA';
-type MaintenanceFilter = 'TODAS' | MaintenanceStatus;
 
 interface AdminStats {
   totalSalesValue: number;
@@ -97,9 +92,6 @@ export function Admin() {
   });
   const [isScheduled, setIsScheduled] = useState(false);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
-  const [maintenanceFilter, setMaintenanceFilter] = useState<MaintenanceFilter>('TODAS');
-  const [maintenanceSearch, setMaintenanceSearch] = useState('');
-  const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceConfig | null>(null);
 
   const fetchMaintenanceConfig = useCallback(async () => {
     try {
@@ -353,7 +345,7 @@ export function Admin() {
     PENDENTE: {
       label: 'Pendente',
       className: 'bg-slate-500/15 text-slate-500 border-slate-500/25',
-      icon: ClipboardList,
+      icon: Clock,
     },
     AGENDADA: {
       label: 'Agendada',
@@ -377,37 +369,8 @@ export function Admin() {
     },
   };
 
-  const maintenanceItems = [mConfig].map(item => ({
-    ...item,
-    status: getEffectiveMaintenanceStatus(item),
-  }));
-
-  const filteredMaintenanceItems = maintenanceItems.filter(item => {
-    const query = maintenanceSearch.trim().toLowerCase();
-    const matchesStatus = maintenanceFilter === 'TODAS' || item.status === maintenanceFilter;
-    const searchable = [
-      item.clientName,
-      item.equipment,
-      item.description,
-      item.type,
-      item.estimatedTime,
-      item.scheduledStart ? formatDateTime(item.scheduledStart) : '',
-      statusConfig[item.status].label,
-    ].join(' ').toLowerCase();
-
-    return matchesStatus && (!query || searchable.includes(query));
-  });
-
-  const nextMaintenance = maintenanceItems
-    .filter(item => item.scheduledStart && new Date(item.scheduledStart) > new Date() && item.status !== 'CANCELADA')
-    .sort((a, b) => new Date(a.scheduledStart!).getTime() - new Date(b.scheduledStart!).getTime())[0];
-
-  const maintenanceSummary = {
-    total: maintenanceItems.length,
-    pending: maintenanceItems.filter(item => item.status === 'PENDENTE' || item.status === 'AGENDADA').length,
-    active: maintenanceItems.filter(item => item.status === 'EM_ANDAMENTO').length,
-    done: maintenanceItems.filter(item => item.status === 'CONCLUIDA').length,
-  };
+  const effectiveMaintenanceStatus = getEffectiveMaintenanceStatus(mConfig);
+  const currentStatusConfig = statusConfig[effectiveMaintenanceStatus];
 
   return (
     <div className="space-y-6">
@@ -465,95 +428,52 @@ export function Admin() {
               <Wrench className="text-amber-500" size={20} />
               Controle de Manutenção
             </h3>
-            <p className="text-sm text-muted mt-1">Gerencie a manutenção global exibida para usuários e administradores.</p>
+            <p className="text-sm text-muted mt-1">Define estado e agendamento global.</p>
           </div>
-          <span className={`w-fit border text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider ${statusConfig[getEffectiveMaintenanceStatus(mConfig)].className}`}>
-            {statusConfig[getEffectiveMaintenanceStatus(mConfig)].label}
+          <span className={`w-fit border text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider ${currentStatusConfig.className}`}>
+            {currentStatusConfig.label}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { label: 'Total', value: maintenanceSummary.total, icon: ClipboardList, tone: 'text-primary bg-primary/15' },
-            { label: 'Pendentes', value: maintenanceSummary.pending, icon: CalendarClock, tone: 'text-blue-500 bg-blue-500/15' },
-            { label: 'Em andamento', value: maintenanceSummary.active, icon: PlayCircle, tone: 'text-amber-500 bg-amber-500/15' },
-            { label: 'Concluídas', value: maintenanceSummary.done, icon: CheckCircle2, tone: 'text-emerald-500 bg-emerald-500/15' },
-          ].map(metric => (
-            <div key={metric.label} className="rounded-2xl border border-border bg-secondary/25 p-3 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-bold text-muted uppercase">{metric.label}</span>
-                <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${metric.tone}`}>
-                  <metric.icon size={16} />
-                </div>
-              </div>
-              <p className="text-2xl font-black mt-2">{metric.value}</p>
+        <div className="rounded-2xl border border-border bg-secondary/25 p-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <p className="text-xs font-bold uppercase text-muted">Estado</p>
+              <p className="mt-1 font-bold text-foreground">{currentStatusConfig.label}</p>
             </div>
-          ))}
-        </div>
-
-        {nextMaintenance && (
-          <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div className="flex items-start gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center shrink-0">
-                <CalendarClock size={18} />
+            {mConfig.scheduledStart && (
+              <div>
+                <p className="text-xs font-bold uppercase text-muted">Inicio</p>
+                <p className="mt-1 font-bold text-foreground">{formatDateTime(mConfig.scheduledStart)}</p>
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-black text-blue-500 uppercase">Próxima manutenção</p>
-                <p className="font-bold text-foreground truncate">{nextMaintenance.type || 'Sistema'} · {formatDateTime(nextMaintenance.scheduledStart)}</p>
-                <p className="text-xs text-muted truncate">{nextMaintenance.equipment || 'Equipamento geral'} · {nextMaintenance.clientName || 'Todos os clientes'}</p>
+            )}
+            {mConfig.estimatedTime && (
+              <div>
+                <p className="text-xs font-bold uppercase text-muted">Tempo estimado</p>
+                <p className="mt-1 font-bold text-foreground">{mConfig.estimatedTime}</p>
               </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelectedMaintenance(nextMaintenance)}
-              className="px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 font-bold text-xs flex items-center justify-center gap-2"
-            >
-              <Eye size={14} />
-              Ver detalhes
-            </button>
+            )}
           </div>
-        )}
-
+        </div>
         <form onSubmit={handleSaveMaintenance} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tipo</label>
+              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Titulo</label>
               <input
                 type="text"
-                placeholder="Sistema, elétrica, rede..."
+                placeholder="Sistema"
                 value={mConfig.type}
                 onChange={(e) => setMConfig(prev => ({ ...prev, type: e.target.value }))}
                 className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Cliente</label>
-              <input
-                type="text"
-                placeholder="Todos os clientes"
-                value={mConfig.clientName}
-                onChange={(e) => setMConfig(prev => ({ ...prev, clientName: e.target.value }))}
-                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Equipamento</label>
-              <input
-                type="text"
-                placeholder="Servidor, base de dados..."
-                value={mConfig.equipment}
-                onChange={(e) => setMConfig(prev => ({ ...prev, equipment: e.target.value }))}
-                className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
-              />
-            </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Descrição</label>
               <textarea
                 rows={3}
-                placeholder="Resumo curto do trabalho de manutenção"
+                placeholder="Impacto esperado"
                 value={mConfig.description}
                 onChange={(e) => setMConfig(prev => ({ ...prev, description: e.target.value }))}
                 className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium resize-none"
@@ -564,7 +484,7 @@ export function Admin() {
               <div className="p-3 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between min-w-0 gap-3">
                 <div>
                   <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isActiveV2">Manutenção imediata</label>
-                  <span className="text-xs text-muted block">Bloqueia usuários comuns agora</span>
+                  <span className="text-xs text-muted block">Ativa o modo de manutencao</span>
                 </div>
                 <input
                   type="checkbox"
@@ -578,7 +498,7 @@ export function Admin() {
               <div className="p-3 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between min-w-0 gap-3">
                 <div>
                   <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isScheduledV2">Agendar manutenção futura</label>
-                  <span className="text-xs text-muted block">Cria aviso discreto na interface</span>
+                  <span className="text-xs text-muted block">Mostra aviso antes do inicio</span>
                 </div>
                 <input
                   type="checkbox"
@@ -679,266 +599,7 @@ export function Admin() {
           </div>
         </form>
 
-        <div className="pt-5 border-t border-border/50 space-y-3">
-          <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={16} />
-              <input
-                type="search"
-                placeholder="Buscar por cliente, data, equipamento ou descrição"
-                value={maintenanceSearch}
-                onChange={(e) => setMaintenanceSearch(e.target.value)}
-                className="w-full bg-secondary border border-border p-3 pl-11 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
-              />
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {(['TODAS', 'PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceFilter[]).map(filter => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setMaintenanceFilter(filter)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold border whitespace-nowrap flex items-center gap-1.5 ${maintenanceFilter === filter ? 'bg-primary text-black border-primary' : 'bg-secondary/50 border-border text-muted hover:text-foreground'}`}
-                >
-                  <Filter size={13} />
-                  {filter === 'TODAS' ? 'Todas' : statusConfig[filter].label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[860px]">
-              <thead>
-                <tr className="bg-secondary/50 text-muted text-xs font-black uppercase">
-                  <th className="p-3 rounded-l-xl">Manutenção</th>
-                  <th className="p-3">Cliente</th>
-                  <th className="p-3">Data</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Atualizar</th>
-                  <th className="p-3 text-right rounded-r-xl">Detalhes</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredMaintenanceItems.map(item => {
-                  const StatusIcon = statusConfig[item.status].icon;
-                  return (
-                    <tr key={`${item.type}-${item.scheduledStart || item.status}`} className="hover:bg-secondary/20">
-                      <td className="p-3">
-                        <p className="font-bold text-sm">{item.type || 'Sistema'}</p>
-                        <p className="text-xs text-muted">{item.equipment || 'Equipamento geral'}</p>
-                      </td>
-                      <td className="p-3 text-sm text-muted">{item.clientName || 'Todos os clientes'}</td>
-                      <td className="p-3 text-sm">{formatDateTime(item.scheduledStart)}</td>
-                      <td className="p-3">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs font-bold ${statusConfig[item.status].className}`}>
-                          <StatusIcon size={13} />
-                          {statusConfig[item.status].label}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <select value={item.status} disabled={loadingMaintenance} onChange={(e) => handleMaintenanceStatusChange(e.target.value as MaintenanceStatus)} className="bg-secondary border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-primary/50">
-                          {(['PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceStatus[]).map(status => (
-                            <option key={status} value={status}>{statusConfig[status].label}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="p-3 text-right">
-                        <button type="button" onClick={() => setSelectedMaintenance(item)} className="px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-xs font-bold inline-flex items-center gap-2">
-                          <Eye size={14} />
-                          Abrir
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 lg:hidden">
-            {filteredMaintenanceItems.map(item => {
-              const StatusIcon = statusConfig[item.status].icon;
-              return (
-                <div key={`${item.type}-${item.scheduledStart || item.status}`} className="rounded-2xl border border-border bg-secondary/20 p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-bold text-foreground truncate">{item.type || 'Sistema'}</p>
-                      <p className="text-xs text-muted truncate">{item.equipment || 'Equipamento geral'}</p>
-                    </div>
-                    <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-bold ${statusConfig[item.status].className}`}>
-                      <StatusIcon size={12} />
-                      {statusConfig[item.status].label}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <p className="text-muted font-bold uppercase">Cliente</p>
-                      <p className="font-medium">{item.clientName || 'Todos'}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted font-bold uppercase">Data</p>
-                      <p className="font-medium">{formatDateTime(item.scheduledStart)}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <select value={item.status} disabled={loadingMaintenance} onChange={(e) => handleMaintenanceStatusChange(e.target.value as MaintenanceStatus)} className="flex-1 bg-secondary border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none">
-                      {(['PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceStatus[]).map(status => (
-                        <option key={status} value={status}>{statusConfig[status].label}</option>
-                      ))}
-                    </select>
-                    <button type="button" onClick={() => setSelectedMaintenance(item)} className="px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-xs font-bold flex items-center gap-2">
-                      <Eye size={14} />
-                      Detalhes
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </section>
-
-      {/* Maintenance Config Card */}
-      <div className="hidden">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
-            <AlertTriangle className="text-amber-500" size={20} />
-            Controle de Manutenção
-          </h3>
-          {mConfig.isActive && (
-            <span className="bg-red-500/25 text-red-500 border border-red-500/40 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider animate-pulse">
-              Em Manutenção
-            </span>
-          )}
-          {!mConfig.isActive && mConfig.scheduledStart && (
-            <span className="bg-blue-500/25 text-blue-500 border border-blue-500/40 text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider">
-              Agendada
-            </span>
-          )}
-        </div>
-
-        <form onSubmit={handleSaveMaintenance} className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 p-4 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between">
-              <div className="space-y-1">
-                <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isActive">
-                  Manutenção Imediata
-                </label>
-                <span className="text-xs text-muted block">Bloqueia o acesso de todos os usuários comuns agora</span>
-              </div>
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={mConfig.isActive}
-                onChange={(e) => setMConfig(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="w-5 h-5 accent-primary rounded cursor-pointer"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
-            <div className="space-y-2 min-w-0">
-              <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Tempo Estimado (opcional)</label>
-              <div className="relative">
-                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                <input
-                  type="text"
-                  placeholder="Ex: 2 horas, 45 minutos"
-                  value={mConfig.estimatedTime}
-                  onChange={(e) => setMConfig(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                  className="w-full bg-secondary border border-border p-3 pl-12 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="p-3 bg-secondary/40 border border-border rounded-2xl flex items-center justify-between self-end min-h-[50px] min-w-0 gap-3">
-              <div className="space-y-1">
-                <label className="font-bold text-sm text-foreground block cursor-pointer" htmlFor="isScheduled">
-                  Agendar Manutenção Futura
-                </label>
-              </div>
-              <input
-                type="checkbox"
-                id="isScheduled"
-                checked={isScheduled}
-                onChange={(e) => setIsScheduled(e.target.checked)}
-                className="w-5 h-5 accent-primary rounded cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {isScheduled && (
-            <motion.div
-              variants={feedbackVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={fastTransition}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 min-w-0"
-            >
-              <div className="space-y-2 min-w-0">
-                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Início da Manutenção</label>
-                <div className="date-input-shell bg-secondary border border-border rounded-2xl focus-within:border-primary/50 transition-colors">
-                  <input
-                    type="datetime-local"
-                    value={mConfig.scheduledStart || ''}
-                    onChange={(e) => setMConfig(prev => ({ ...prev, scheduledStart: e.target.value }))}
-                    required={isScheduled}
-                    className="h-11 px-3 outline-none text-foreground text-xs font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2 min-w-0">
-                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Duração em Horas (opcional)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  placeholder="Ex: 2.5"
-                  value={mConfig.durationHours || ''}
-                  onChange={(e) => setMConfig(prev => ({ ...prev, durationHours: e.target.value ? Number(e.target.value) : null }))}
-                  className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium min-w-0"
-                />
-              </div>
-
-              <div className="space-y-2 min-w-0">
-                <label className="text-xs font-bold text-muted uppercase tracking-widest block ml-1">Aviso Prévio em Horas (opcional)</label>
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Ex: 24 (1 dia antes)"
-                  value={mConfig.leadTimeHours || ''}
-                  onChange={(e) => setMConfig(prev => ({ ...prev, leadTimeHours: e.target.value ? Number(e.target.value) : null }))}
-                  className="w-full bg-secondary border border-border p-3 rounded-2xl outline-none focus:border-primary/50 text-foreground text-sm font-medium min-w-0"
-                />
-              </div>
-            </motion.div>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
-            {(mConfig.isActive || mConfig.scheduledStart) && (
-              <button
-                type="button"
-                onClick={handleImmediateStop}
-                disabled={loadingMaintenance}
-                className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                <Square size={16} />
-                {mConfig.isActive ? 'Parar Manutenção Imediatamente' : 'Cancelar Agendamento'}
-              </button>
-            )}
-            <button
-              type="submit"
-              disabled={loadingMaintenance}
-              className="flex-1 px-4 py-3 bg-primary hover:bg-emerald-500 text-black rounded-xl font-black flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
-            >
-              <Save size={16} />
-              {loadingMaintenance ? 'Salvando...' : 'Salvar Configurações'}
-            </button>
-          </div>
-        </form>
-      </div>
 
       <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
         <div className="p-6 border-b border-border flex items-center justify-between">
@@ -1113,98 +774,6 @@ export function Admin() {
 
       {/* CUSTOM CONFIRMATION MODAL */}
       <AnimatePresence>
-        {selectedMaintenance && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              variants={overlayVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={fastTransition}
-              onClick={() => setSelectedMaintenance(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-
-            <motion.div
-              variants={modalVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={motionTransition}
-              className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-y-auto overflow-x-hidden"
-            >
-              <div className="flex justify-between items-start gap-4 mb-6">
-                <div>
-                  <p className="text-xs font-black text-amber-500 uppercase tracking-wider">Detalhes da manutenção</p>
-                  <h3 className="text-xl font-black text-foreground mt-1">{selectedMaintenance.type || 'Sistema'}</h3>
-                </div>
-                <button
-                  onClick={() => setSelectedMaintenance(null)}
-                  className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
-                  <p className="text-xs font-black text-muted uppercase">Status</p>
-                  <p className="font-bold mt-1">{statusConfig[getEffectiveMaintenanceStatus(selectedMaintenance)].label}</p>
-                </div>
-                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
-                  <p className="text-xs font-black text-muted uppercase">Data/Hora</p>
-                  <p className="font-bold mt-1">{formatDateTime(selectedMaintenance.scheduledStart)}</p>
-                </div>
-                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
-                  <p className="text-xs font-black text-muted uppercase">Cliente</p>
-                  <p className="font-bold mt-1">{selectedMaintenance.clientName || 'Todos os clientes'}</p>
-                </div>
-                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
-                  <p className="text-xs font-black text-muted uppercase">Equipamento</p>
-                  <p className="font-bold mt-1">{selectedMaintenance.equipment || 'Equipamento geral'}</p>
-                </div>
-                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
-                  <p className="text-xs font-black text-muted uppercase">Duração</p>
-                  <p className="font-bold mt-1">{selectedMaintenance.durationHours ? `${selectedMaintenance.durationHours} horas` : 'Indefinida'}</p>
-                </div>
-                <div className="rounded-2xl bg-secondary/40 border border-border p-3">
-                  <p className="text-xs font-black text-muted uppercase">Aviso prévio</p>
-                  <p className="font-bold mt-1">{selectedMaintenance.leadTimeHours ? `${selectedMaintenance.leadTimeHours} horas antes` : 'Não configurado'}</p>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-secondary/40 border border-border p-3 mt-3">
-                <p className="text-xs font-black text-muted uppercase">Descrição</p>
-                <p className="text-sm text-foreground mt-1 leading-relaxed">
-                  {selectedMaintenance.description || 'Sem descrição informada.'}
-                </p>
-              </div>
-
-              <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <select
-                  value={getEffectiveMaintenanceStatus(selectedMaintenance)}
-                  disabled={loadingMaintenance}
-                  onChange={(e) => {
-                    handleMaintenanceStatusChange(e.target.value as MaintenanceStatus);
-                    setSelectedMaintenance(null);
-                  }}
-                  className="flex-1 bg-secondary border border-border rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-primary/50"
-                >
-                  {(['PENDENTE', 'AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'] as MaintenanceStatus[]).map(status => (
-                    <option key={status} value={status}>{statusConfig[status].label}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => setSelectedMaintenance(null)}
-                  className="px-4 py-3 bg-primary rounded-xl font-black text-black shadow-lg shadow-primary/20"
-                >
-                  Fechar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
         {roleModal?.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
@@ -1408,3 +977,4 @@ export function Admin() {
     </div>
   );
 }
+

@@ -23,7 +23,7 @@ const guideSections = [
     icon: <TrendingUp className="text-primary" size={24} />,
     color: 'bg-primary/10 border-primary/20',
     content: (
-      <div className="space-y-4 text-sm text-muted-foreground">
+      <div className="space-y-4 text-sm text-muted">
         <p>Ao abrir o sistema, a primeira coisa que vê são 4 indicadores financeiros no topo. Veja o que cada um representa de forma detalhada:</p>
         
         <div className="space-y-3">
@@ -68,7 +68,7 @@ const guideSections = [
     icon: <Package className="text-blue-500" size={24} />,
     color: 'bg-blue-500/10 border-blue-500/20',
     content: (
-      <div className="space-y-3 text-sm text-muted-foreground">
+      <div className="space-y-3 text-sm text-muted">
         <p>Um <strong>Lote</strong> é um grupo de frangos ou pintainhos que você comprou de uma só vez.</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Custo Unitário:</strong> Quanto você pagou por CADA frango ao fornecedor.</li>
@@ -88,7 +88,7 @@ const guideSections = [
     icon: <ShoppingCart className="text-emerald-500" size={24} />,
     color: 'bg-emerald-500/10 border-emerald-500/20',
     content: (
-      <div className="space-y-3 text-sm text-muted-foreground">
+      <div className="space-y-3 text-sm text-muted">
         <p>As vendas retiram frangos do seu stock (Lotes ativos) e adicionam dinheiro ao seu Caixa.</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Venda à Vista:</strong> Na hora da venda, coloque o "Valor Pago" igual ao "Valor Total". O status ficará como <em>PAGO</em>.</li>
@@ -104,7 +104,7 @@ const guideSections = [
     icon: <Users className="text-indigo-500" size={24} />,
     color: 'bg-indigo-500/10 border-indigo-500/20',
     content: (
-      <div className="space-y-3 text-sm text-muted-foreground">
+      <div className="space-y-3 text-sm text-muted">
         <p>A aba <strong>Clientes</strong> é onde você controla quem deve dinheiro ao aviário.</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Dívida Total:</strong> Mostra o valor somado de todas as vendas que o cliente ainda não terminou de pagar.</li>
@@ -120,7 +120,7 @@ const guideSections = [
     icon: <AlertTriangle className="text-rose-500" size={24} />,
     color: 'bg-rose-500/10 border-rose-500/20',
     content: (
-      <div className="space-y-3 text-sm text-muted-foreground">
+      <div className="space-y-3 text-sm text-muted">
         <p>Infelizmente, mortes acontecem. Mas é crucial registrar cada perda no sistema.</p>
         <ul className="list-disc pl-5 space-y-1">
           <li>Vá até a aba de Lotes e clique em "Registrar Morte".</li>
@@ -136,7 +136,7 @@ const guideSections = [
     icon: <TrendingUp className="text-amber-500" size={24} />,
     color: 'bg-amber-500/10 border-amber-500/20',
     content: (
-      <div className="space-y-3 text-sm text-muted-foreground">
+      <div className="space-y-3 text-sm text-muted">
         <p>A página de <strong>Relatórios</strong> é o coração financeiro do seu negócio.</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Faturamento Bruto:</strong> É todo o dinheiro que entrou (ou vai entrar) das vendas.</li>
@@ -164,7 +164,7 @@ export function Guide() {
         <h1 className="text-3xl font-black italic tracking-tight text-foreground">
           MANUAL DE INSTRUÇÕES
         </h1>
-        <p className="text-muted-foreground font-medium max-w-lg mx-auto">
+        <p className="max-w-lg mx-auto font-medium text-muted">
           Informacoes essenciais para usar o Aviarios Pro no dia a dia.
         </p>
       </div>
@@ -215,7 +215,7 @@ export function Guide() {
       <div className="mt-12 bg-secondary/30 border border-border rounded-3xl p-8 text-center space-y-6">
         <div className="max-w-md mx-auto space-y-2">
           <h3 className="text-xl font-black text-foreground">Ainda tem dúvidas ou precisa de Ajuda?</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted">
             Se você encontrou alguma dificuldade ou precisa de suporte técnico especializado, entre em contato direto com o nosso suporte oficial via WhatsApp.
           </p>
         </div>

@@ -3,6 +3,7 @@ import { FileText, Download, TrendingUp, HelpCircle } from 'lucide-react';
 import { useGlobalDate } from '../contexts/DateContext';
 import { motion } from 'framer-motion';
 import { motionTransition, pageVariants } from '../lib/animations';
+import { formatCurrency, formatLongDate } from '../lib/formatters';
 
 interface ReportEntry {
   id: string;
@@ -62,7 +63,7 @@ export function Reports() {
           </div>
           <div className="text-right">
             <p className="text-xs font-bold uppercase text-gray-500">Documento Oficial</p>
-            <p className="text-sm font-black text-foreground">{new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+            <p className="text-sm font-black text-foreground">{formatLongDate(new Date())}</p>
           </div>
         </div>
         <div className="bg-primary/10 p-4 rounded-xl border border-primary/20">
@@ -83,7 +84,7 @@ export function Reports() {
               </div>
             </div>
           </div>
-          <p className="text-2xl font-black text-emerald-500 print:text-emerald-700">MZN {report?.totalIncomes.toLocaleString()}</p>
+          <p className="text-2xl font-black text-emerald-500 print:text-emerald-700">{formatCurrency(report?.totalIncomes ?? 0)}</p>
         </div>
 
         {/* Custo Card */}
@@ -97,7 +98,7 @@ export function Reports() {
               </div>
             </div>
           </div>
-          <p className="text-2xl font-black text-rose-500 print:text-rose-700">MZN {report?.totalExpenses.toLocaleString()}</p>
+          <p className="text-2xl font-black text-rose-500 print:text-rose-700">{formatCurrency(report?.totalExpenses ?? 0)}</p>
         </div>
 
         {/* Lucro Card */}
@@ -112,7 +113,7 @@ export function Reports() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <p className="text-2xl font-black text-foreground">MZN {report?.netMargin.toLocaleString()}</p>
+            <p className="text-2xl font-black text-foreground">{formatCurrency(report?.netMargin ?? 0)}</p>
             <TrendingUp size={24} className="text-primary" />
           </div>
         </div>
@@ -143,7 +144,7 @@ export function Reports() {
                     </span>
                   </td>
                   <td className="p-4 text-right font-black text-rose-500 print:text-black">
-                    MZN {item.amount.toLocaleString()}
+                    {formatCurrency(item.amount)}
                   </td>
                 </tr>
               ))}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFinance } from '../hooks/useFinance';
 import { useBatches } from '../hooks/useBatches';
 import { LossModal } from '../components/Finance/LossModal';
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { cardListVariants, motionTransition, tableRowVariants } from '../lib/animations';
+import { financeMonthOptions, formatCurrency, formatMonthLabel, formatShortDate } from '../lib/formatters';
 
 export function Finance() {
   const queryClient = useQueryClient();
@@ -38,6 +39,11 @@ export function Finance() {
 
   const activeBatchId = selectedBatchId || batches[0]?.id || '';
 
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 5 }, (_, index) => currentYear - 2 + index);
+  }, []);
+
   const { data: batchExpenses = [], isLoading: isLoadingBatchExpenses } = useQuery({
     queryKey: ['batch-expenses', activeBatchId],
     queryFn: async () => {
@@ -54,15 +60,21 @@ export function Finance() {
     enabled: !!activeBatchId
   });
 
-  const totalRacao = batchExpenses
-    .filter(e => e.type === 'RACAO')
-    .reduce((acc, e) => acc + e.amount, 0);
+  const { totalRacao, totalVacina, totalBatch } = useMemo(() => {
+    return batchExpenses.reduce(
+      (totals, expense) => {
+        if (expense.type === 'RACAO') {
+          totals.totalRacao += expense.amount;
+        } else {
+          totals.totalVacina += expense.amount;
+        }
 
-  const totalVacina = batchExpenses
-    .filter(e => e.type === 'VACINA')
-    .reduce((acc, e) => acc + e.amount, 0);
-
-  const totalBatch = totalRacao + totalVacina;
+        totals.totalBatch += expense.amount;
+        return totals;
+      },
+      { totalRacao: 0, totalVacina: 0, totalBatch: 0 },
+    );
+  }, [batchExpenses]);
 
   return (
     <div className="space-y-6">
@@ -127,9 +139,9 @@ export function Finance() {
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
                 className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto min-w-0"
               >
-                {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {new Date(2000, i).toLocaleString('pt-PT', { month: 'long' })}
+                {financeMonthOptions.map((monthOption) => (
+                  <option key={monthOption.value} value={monthOption.value}>
+                    {monthOption.label}
                   </option>
                 ))}
               </select>
@@ -138,14 +150,11 @@ export function Finance() {
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 className="bg-secondary border border-border text-foreground px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider outline-none focus:border-primary transition-all w-full md:w-auto min-w-0"
               >
-                {Array.from({ length: 5 }, (_, i) => {
-                  const yearOption = new Date().getFullYear() - 2 + i;
-                  return (
-                    <option key={yearOption} value={yearOption}>
-                      {yearOption}
-                    </option>
-                  );
-                })}
+                {yearOptions.map((yearOption) => (
+                  <option key={yearOption} value={yearOption}>
+                    {yearOption}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="hidden md:block md:col-span-1"></div>
@@ -157,13 +166,13 @@ export function Finance() {
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Total</p>
                 <p className="text-xl min-[360px]:text-2xl font-black text-foreground break-words">
-                  {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(fixedExpensesData.total)}
+                  {formatCurrency(fixedExpensesData.total)}
                 </p>
               </div>
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Média diária</p>
                 <p className="text-xl min-[360px]:text-2xl font-black text-primary break-words">
-                  {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(fixedExpensesData.dailyValue)}
+                  {formatCurrency(fixedExpensesData.dailyValue)}
                 </p>
               </div>
             </div>
@@ -174,7 +183,7 @@ export function Finance() {
             <div className="py-16 text-center text-muted font-bold text-sm">Carregando lançamentos...</div>
           ) : !fixedExpensesData || fixedExpensesData.expenses.length === 0 ? (
             <div className="py-16 text-center border-2 border-dashed border-border rounded-2xl bg-secondary/10">
-              <p className="text-muted text-sm font-bold">Nenhuma conta registrada para {new Date(2000, selectedMonth - 1).toLocaleString('pt-PT', { month: 'long' })} de {selectedYear}.</p>
+              <p className="text-muted text-sm font-bold">Nenhuma conta registrada para {formatMonthLabel(selectedMonth)} de {selectedYear}.</p>
             </div>
           ) : (
             <>
@@ -195,10 +204,10 @@ export function Finance() {
                       <div className="space-y-1">
                         <p className="font-bold text-foreground text-sm leading-tight">{expense.description}</p>
                         <p className="text-muted text-[10px] uppercase font-black tracking-wider">
-                          {new Date(expense.date).toLocaleDateString('pt-PT')}
+                          {formatShortDate(expense.date)}
                         </p>
                         <p className="font-black text-primary text-base pt-1">
-                          {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                          {formatCurrency(expense.amount)}
                         </p>
                       </div>
                       <button
@@ -239,10 +248,10 @@ export function Finance() {
                         >
                           <td className="py-4 font-bold text-foreground text-sm">{expense.description}</td>
                           <td className="py-4 text-muted text-xs">
-                            {new Date(expense.date).toLocaleDateString('pt-PT')}
+                            {formatShortDate(expense.date)}
                           </td>
                           <td className="py-4 font-black text-foreground text-sm text-right">
-                            {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                            {formatCurrency(expense.amount)}
                           </td>
                           <td className="py-4 text-center">
                             <button
@@ -299,19 +308,19 @@ export function Finance() {
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Total de Insumos</p>
                 <p className="text-xl min-[360px]:text-2xl font-black text-foreground break-words">
-                  {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(totalBatch)}
+                  {formatCurrency(totalBatch)}
                 </p>
               </div>
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Ração Consumida</p>
                 <p className="text-xl min-[360px]:text-2xl font-black text-primary break-words">
-                  {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(totalRacao)}
+                  {formatCurrency(totalRacao)}
                 </p>
               </div>
               <div className="bg-secondary/40 p-5 rounded-2xl border border-border flex flex-col justify-center">
                 <p className="text-muted text-[9px] uppercase font-black tracking-widest mb-1">Medicamentos e Vacinas</p>
                 <p className="text-xl min-[360px]:text-2xl font-black text-yellow-500 break-words">
-                  {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(totalVacina)}
+                  {formatCurrency(totalVacina)}
                 </p>
               </div>
             </div>
@@ -358,10 +367,10 @@ export function Finance() {
                           {expense.description || (expense.type === 'RACAO' ? 'Ração' : 'Medicamento/Vacina')}
                         </p>
                         <p className="text-muted text-[10px] uppercase font-black tracking-wider">
-                          {new Date(expense.createdAt).toLocaleDateString('pt-PT')}
+                          {formatShortDate(expense.createdAt)}
                         </p>
                         <p className="font-black text-primary text-base pt-1">
-                          {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                          {formatCurrency(expense.amount)}
                         </p>
                       </div>
                       <button
@@ -414,10 +423,10 @@ export function Finance() {
                             {expense.description || (expense.type === 'RACAO' ? 'Compra de Ração' : 'Compra de Vacinas')}
                           </td>
                           <td className="py-4 text-muted text-xs">
-                            {new Date(expense.createdAt).toLocaleDateString('pt-PT')}
+                            {formatShortDate(expense.createdAt)}
                           </td>
                           <td className="py-4 font-black text-foreground text-sm text-right">
-                            {new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expense.amount)}
+                            {formatCurrency(expense.amount)}
                           </td>
                           <td className="py-4 text-center">
                             <button
@@ -489,7 +498,7 @@ export function Finance() {
         title={expenseToDelete?.type === 'FIXED' ? "Excluir Conta Mensal?" : "Excluir Insumo de Lote?"}
         description={expenseToDelete?.type === 'FIXED' ? "Você está prestes a excluir esta despesa operacional fixa de forma permanente." : "Você está prestes a excluir este insumo de lote (ração/vacina) de forma permanente."}
         itemName={expenseToDelete?.description}
-        itemValue={expenseToDelete ? new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(expenseToDelete.amount) : undefined}
+        itemValue={expenseToDelete ? formatCurrency(expenseToDelete.amount) : undefined}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   User as UserIcon,
@@ -7,22 +6,11 @@ import {
   LogOut,
   ShieldCheck
 } from 'lucide-react';
+import { useThemePreference } from '../hooks/useThemePreference';
 
 export function Perfil() {
   const { user, signOut } = useAuth();
-  const [theme, setTheme] = useState<'dark' | 'light'>(
-    () => (localStorage.getItem('@AviarioPro:theme') as 'dark' | 'light') || 'dark'
-  );
-
-  const handleToggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-
-    const root = window.document.documentElement;
-    root.classList.toggle('dark', nextTheme === 'dark');
-    root.classList.toggle('light', nextTheme === 'light');
-    localStorage.setItem('@AviarioPro:theme', nextTheme);
-  };
+  const { theme, toggleTheme } = useThemePreference();
 
   const displayName = user?.name?.trim() || 'Sem nome definido';
   const displayEmail = user?.email?.trim() || 'Sem email definido';
@@ -77,7 +65,8 @@ export function Perfil() {
         <h3 className="text-base font-semibold text-foreground">Preferências</h3>
         <div className="mt-4 flex flex-col sm:flex-row gap-3">
           <button
-            onClick={handleToggleTheme}
+            type="button"
+            onClick={toggleTheme}
             className="flex-1 flex items-center justify-between gap-4 p-4 bg-secondary/40 border border-border rounded-xl text-left hover:bg-secondary/70 transition-colors"
           >
             <div>
@@ -88,6 +77,7 @@ export function Perfil() {
           </button>
 
           <button
+            type="button"
             onClick={signOut}
             className="flex-1 flex items-center justify-between gap-4 p-4 border border-rose-500/20 rounded-xl text-left text-rose-500 hover:bg-rose-500/10 transition-colors"
           >

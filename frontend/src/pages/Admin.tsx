@@ -276,6 +276,15 @@ export function Admin() {
     setRoleModal({ isOpen: true, userId, userName, currentRole });
   };
 
+  const openTransferModal = (userId: string, userName: string) => {
+    setTransferModal({ isOpen: true, userId, userName });
+  };
+
+  const closeTransferModal = () => {
+    setTransferModal(null);
+    setTransferPassword('');
+  };
+
   const confirmRoleChange = () => {
     if (!roleModal) return;
     const newRole = roleModal.currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
@@ -304,6 +313,22 @@ export function Admin() {
       }
     });
   };
+
+  useEffect(() => {
+    const isAnyModalOpen = !!roleModal?.isOpen || !!deleteModal?.isOpen || !!transferModal?.isOpen;
+    if (!isAnyModalOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+
+      setRoleModal(null);
+      setDeleteModal(null);
+      closeTransferModal();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteModal?.isOpen, roleModal?.isOpen, transferModal?.isOpen]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-MZ', {
@@ -371,6 +396,7 @@ export function Admin() {
 
   const effectiveMaintenanceStatus = getEffectiveMaintenanceStatus(mConfig);
   const currentStatusConfig = statusConfig[effectiveMaintenanceStatus];
+  const currentUserIsOwner = users?.some((listedUser) => listedUser.id === user?.id && listedUser.isFirstAdmin) ?? false;
 
   return (
     <div className="space-y-6">
@@ -666,9 +692,9 @@ export function Admin() {
                         </button>
 
                         {/* Se o current user for o Dono, mostra a opção de transferir dono */}
-                        {users?.find(usr => usr.id === user?.id)?.isFirstAdmin && !u.isFirstAdmin && u.id !== user?.id && (
+                        {currentUserIsOwner && !u.isFirstAdmin && u.id !== user?.id && (
                           <button
-                            onClick={() => setTransferModal({ isOpen: true, userId: u.id, userName: u.name })}
+                            onClick={() => openTransferModal(u.id, u.name)}
                             disabled={transferOwnershipMutation.isPending}
                             className="px-3 py-1.5 rounded-xl font-bold text-xs bg-secondary hover:bg-amber-500 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
                             title="Tornar este usuário o novo Dono"
@@ -713,7 +739,7 @@ export function Admin() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">{u.email}</p>
+                    <p className="text-xs text-muted">{u.email}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${u.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted'
                     }`}>
@@ -723,15 +749,15 @@ export function Admin() {
 
                 <div className="grid grid-cols-3 gap-2 py-3 border-y border-border/50">
                   <div className="text-center">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Frangos</p>
+                    <p className="text-[10px] text-muted uppercase font-bold">Frangos</p>
                     <p className="font-black text-emerald-500 text-lg">{u.totalChickens || 0}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Lotes</p>
+                    <p className="text-[10px] text-muted uppercase font-bold">Lotes</p>
                     <p className="font-bold text-foreground text-lg">{u._count.batches}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Vendas</p>
+                    <p className="text-[10px] text-muted uppercase font-bold">Vendas</p>
                     <p className="font-bold text-foreground text-lg">{u._count.sales}</p>
                   </div>
                 </div>
@@ -747,9 +773,9 @@ export function Admin() {
                       {u.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
                     </button>
 
-                    {users?.find(usr => usr.id === user?.id)?.isFirstAdmin && !u.isFirstAdmin && u.id !== user?.id && (
+                    {currentUserIsOwner && !u.isFirstAdmin && u.id !== user?.id && (
                       <button
-                        onClick={() => setTransferModal({ isOpen: true, userId: u.id, userName: u.name })}
+                        onClick={() => openTransferModal(u.id, u.name)}
                         disabled={transferOwnershipMutation.isPending}
                         className="flex-1 py-2.5 rounded-xl font-bold text-xs bg-secondary hover:bg-amber-500 hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         title="Transferir Posse"
@@ -792,6 +818,8 @@ export function Admin() {
               animate="animate"
               exit="exit"
               transition={motionTransition}
+              role="dialog"
+              aria-modal="true"
               className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-y-auto overflow-x-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
@@ -801,7 +829,9 @@ export function Admin() {
                   <AlertTriangle size={24} />
                 </div>
                 <button
+                  type="button"
                   onClick={() => setRoleModal(null)}
+                  aria-label="Fechar modal"
                   className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
                 >
                   <X size={16} />
@@ -810,7 +840,7 @@ export function Admin() {
 
               <h3 className="text-xl font-black mb-2 text-foreground">Atenção Necessária!</h3>
 
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <p className="mb-6 leading-relaxed text-muted">
                 Você está prestes a mudar as permissões do usuário <strong className="text-foreground">{roleModal.userName}</strong>.
                 <br /><br />
                 {roleModal.currentRole === 'ADMIN' ? (
@@ -822,12 +852,14 @@ export function Admin() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
+                  type="button"
                   onClick={() => setRoleModal(null)}
                   className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
+                  type="button"
                   onClick={confirmRoleChange}
                   disabled={updateRoleMutation.isPending}
                   className="flex-1 px-4 py-3 bg-primary rounded-xl font-black text-black shadow-lg shadow-primary/20 transition-colors disabled:opacity-50"
@@ -857,6 +889,8 @@ export function Admin() {
               animate="animate"
               exit="exit"
               transition={motionTransition}
+              role="dialog"
+              aria-modal="true"
               className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-y-auto overflow-x-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
@@ -866,7 +900,9 @@ export function Admin() {
                   <Trash2 size={24} />
                 </div>
                 <button
+                  type="button"
                   onClick={() => setDeleteModal(null)}
+                  aria-label="Fechar modal"
                   className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
                 >
                   <X size={16} />
@@ -875,7 +911,7 @@ export function Admin() {
 
               <h3 className="text-xl font-black mb-2 text-foreground">Excluir Conta?</h3>
 
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <p className="mb-6 leading-relaxed text-muted">
                 Você tem certeza que deseja excluir permanentemente o usuário <strong className="text-foreground">{deleteModal.userName}</strong>?
                 <br /><br />
                 Todos os lotes, registros de vendas e finanças associados a este usuário <strong>serão permanentemente apagados</strong> do banco de dados. Esta ação não pode ser desfeita.
@@ -883,12 +919,14 @@ export function Admin() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
+                  type="button"
                   onClick={() => setDeleteModal(null)}
                   className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
+                  type="button"
                   onClick={confirmDeleteUser}
                   disabled={deleteUserMutation.isPending}
                   className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl font-black text-white shadow-lg shadow-red-500/20 transition-colors disabled:opacity-50"
@@ -908,7 +946,7 @@ export function Admin() {
               animate="animate"
               exit="exit"
               transition={fastTransition}
-              onClick={() => setTransferModal(null)}
+              onClick={closeTransferModal}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
 
@@ -918,6 +956,8 @@ export function Admin() {
               animate="animate"
               exit="exit"
               transition={motionTransition}
+              role="dialog"
+              aria-modal="true"
               className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] bg-card border border-border rounded-3xl p-6 shadow-2xl overflow-y-auto overflow-x-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
@@ -927,7 +967,9 @@ export function Admin() {
                   <ArrowRightLeft size={24} />
                 </div>
                 <button
-                  onClick={() => { setTransferModal(null); setTransferPassword(''); }}
+                  type="button"
+                  onClick={closeTransferModal}
+                  aria-label="Fechar modal"
                   className="p-2 bg-secondary rounded-full text-muted hover:text-foreground transition-colors"
                 >
                   <X size={16} />
@@ -936,7 +978,7 @@ export function Admin() {
 
               <h3 className="text-xl font-black mb-2 text-foreground">Transferir Posse?</h3>
 
-              <p className="text-muted-foreground mb-6 leading-relaxed text-sm">
+              <p className="mb-6 text-sm leading-relaxed text-muted">
                 Você está transferindo a posse de <strong>Dono</strong> para <strong className="text-foreground">{transferModal.userName}</strong>.
                 <br /><br />
                 Isto significa que você passará a ser um administrador comum e o usuário <strong>{transferModal.userName}</strong> passará a ser o único a deter direitos inalteráveis.
@@ -957,12 +999,14 @@ export function Admin() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => { setTransferModal(null); setTransferPassword(''); }}
+                  type="button"
+                  onClick={closeTransferModal}
                   className="flex-1 px-4 py-3 bg-secondary rounded-xl font-bold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
+                  type="button"
                   onClick={confirmTransferOwnership}
                   disabled={transferOwnershipMutation.isPending}
                   className="flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-600 rounded-xl font-black text-white shadow-lg shadow-amber-500/20 transition-colors disabled:opacity-50"

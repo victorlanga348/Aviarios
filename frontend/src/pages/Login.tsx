@@ -38,7 +38,7 @@ export function Login() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 mb-6 animate-float">
             <LogIn size={40} className="text-primary" />
           </div>
-          <h1 className="text-4xl font-black tracking-tight mb-2 bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent">
+          <h1 className="mb-2 text-4xl font-black tracking-tight text-foreground">
             Bem-vindo de volta
           </h1>
           <p className="text-muted text-lg">Gerencie seu aviário com precisão</p>
@@ -82,6 +82,7 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors select-none pointer-events-auto"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

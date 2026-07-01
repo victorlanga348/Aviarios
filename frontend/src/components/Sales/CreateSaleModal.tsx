@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { saleSchema, type SaleFormData } from '../../lib/validations/sale';
 import type { Batch, Customer } from '../../@types';
@@ -20,7 +20,7 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
   const lastUnitPrice = localStorage.getItem('@AviarioPro:lastUnitPrice');
   const defaultUnitPrice = lastUnitPrice ? parseFloat(lastUnitPrice) : undefined;
 
-  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<SaleFormData>({
+  const { control, register, handleSubmit, reset, formState: { errors } } = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
       unitPrice: defaultUnitPrice,
@@ -53,9 +53,10 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
   };
 
   // Cálculos em tempo real
-  const qty = watch('quantity') || 0;
-  const price = watch('unitPrice') || 0;
-  const paid = watch('amountPaid') || 0;
+  const qty = useWatch({ control, name: 'quantity' }) || 0;
+  const price = useWatch({ control, name: 'unitPrice' }) || 0;
+  const paid = useWatch({ control, name: 'amountPaid' }) || 0;
+  const isScheduled = useWatch({ control, name: 'isScheduled' }) || false;
   const total = qty * price;
   const balance = total - paid;
 
@@ -77,14 +78,17 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
             animate="animate"
             exit="exit"
             transition={fastTransition}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-sale-modal-title"
             className="bg-card border border-border p-5 md:p-8 rounded-2xl w-full max-w-2xl max-h-[calc(100dvh-2rem)] shadow-2xl my-4 lg:my-0 overflow-y-auto overflow-x-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold flex items-center gap-2">
+              <h2 id="create-sale-modal-title" className="text-xl font-bold flex items-center gap-2">
                 <Calculator className="text-primary" /> Registrar Venda
               </h2>
-              <button onClick={onClose} className="text-muted hover:text-foreground transition-colors"><X size={24} /></button>
+              <button type="button" onClick={onClose} aria-label="Fechar modal de venda" className="text-muted hover:text-foreground transition-colors"><X size={24} /></button>
             </div>
 
             <form onSubmit={handleSubmit(handleFormSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
@@ -141,11 +145,11 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
                     <input type="checkbox" {...register('isScheduled')} id="isScheduled" className="w-4 h-4 accent-primary rounded cursor-pointer" />
                     <label htmlFor="isScheduled" className="text-xs text-foreground uppercase font-bold cursor-pointer min-w-0">Agendar Entrega?</label>
                   </div>
-                  {watch('isScheduled') ? (
+                  {isScheduled ? (
                     <div className="min-w-0">
                       <label className="text-xs text-muted uppercase">Data da Entrega</label>
                       <div className="date-input-shell bg-background border border-border rounded-lg focus-within:border-primary transition-colors">
-                        <input type="date" {...register('scheduledDeliveryDate')} className="h-11 px-3 outline-none text-sm text-foreground" required={watch('isScheduled')} />
+                        <input type="date" {...register('scheduledDeliveryDate')} className="h-11 px-3 outline-none text-sm text-foreground" required={isScheduled} />
                       </div>
                     </div>
                   ) : <div className="hidden sm:block"></div>}
@@ -189,7 +193,7 @@ export function CreateSaleModal({ isOpen, onClose, batches, customers, onSubmit 
                 </div>
 
                 <button type="submit" className="w-full bg-primary hover:bg-emerald-500 text-black font-black py-4 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] mt-6">
-                  {watch('isScheduled') ? 'Registrar e Agendar Entrega' : 'Finalizar Venda'}
+                  {isScheduled ? 'Registrar e Agendar Entrega' : 'Finalizar Venda'}
                 </button>
               </div>
             </form>

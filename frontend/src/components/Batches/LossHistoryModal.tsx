@@ -55,7 +55,9 @@ export function LossHistoryModal({ isOpen, onClose, batch, onUndo, isUndoing }: 
             </div>
           </div>
           <button 
+            type="button"
             onClick={onClose} 
+            aria-label="Fechar histórico de perdas"
             className="p-1.5 hover:bg-secondary rounded-xl transition text-muted hover:text-foreground"
           >
             <X size={20} />
@@ -89,7 +91,7 @@ export function LossHistoryModal({ isOpen, onClose, batch, onUndo, isUndoing }: 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-rose-500 font-black text-sm">{loss.quantity} aves</span>
-                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <span className="text-[10px] text-muted">•</span>
                       <div className="flex items-center gap-1 text-[10px] text-muted font-semibold">
                         <Calendar size={12} />
                         {new Date(loss.date).toLocaleDateString()} {new Date(loss.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -105,6 +107,7 @@ export function LossHistoryModal({ isOpen, onClose, batch, onUndo, isUndoing }: 
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => setSelectedLossToUndo(loss)}
                     disabled={isUndoing}
                     className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl transition border border-rose-500/10 hover:border-rose-500 flex items-center gap-1 text-xs font-bold active:scale-95 disabled:opacity-50"
@@ -122,6 +125,7 @@ export function LossHistoryModal({ isOpen, onClose, batch, onUndo, isUndoing }: 
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-border flex justify-end relative z-10">
           <button
+            type="button"
             onClick={onClose}
             className="px-6 py-3 bg-secondary hover:bg-secondary/80 text-foreground font-bold rounded-xl transition text-sm border border-border"
           >
